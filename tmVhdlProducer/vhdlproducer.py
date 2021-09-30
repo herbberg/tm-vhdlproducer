@@ -87,6 +87,17 @@ def makedirs(path):
         os.makedirs(path)
 
 # -----------------------------------------------------------------------------
+#  GtlLutsGenerator.
+# -----------------------------------------------------------------------------
+
+def GtlLutsGenerator(bits, step):
+    lut_len = 2**bits
+    lut = [0 for x in range(lut_len)]
+    for i in range(0,lut_len):
+        lut[i] = int(round((step*i)*10**3,1)+0.5)
+    return lut
+
+# -----------------------------------------------------------------------------
 #  Template engines with custom loader environment.
 # -----------------------------------------------------------------------------
 
@@ -102,6 +113,7 @@ class TemplateEngine(object):
     def render(self, template, data={}):
         template = self.environment.get_template(template)
         return template.render(data)
+
 
 # -----------------------------------------------------------------------------
 #  VHDL producer class.
@@ -136,8 +148,31 @@ class VhdlProducer(object):
             makedirs(path)
         return directories
 
+## test begin
+    #def writeGtlLuts(directory):
+        #"""Write GTL LUTS to *directory*."""
+
+        #content = GtlLutsGenerator(8, 0.0435)
+        #filename = os.path.join(directory, "gtl_luts.vhd")
+        #print("writeGtlLuts:", filename)
+        #with open(filename, 'w') as fp:
+            #fp.write(content)
+## test end
+
     def write(self, collection, directory):
         """Write distributed modules (VHDL templates) to *directory*."""
+
+# test begin
+        calo_eta_bits = 8
+        calo_eta_step = 0.0435
+        content = GtlLutsGenerator(calo_eta_bits, calo_eta_step)
+        filename = os.path.join(directory, "gtl_luts.vhd")
+        logging.info("writing LUTs to: %s", filename)
+        with open(filename, 'w') as fp:
+            for i in range(0,2**calo_eta_bits):
+                lut_val = str(content[i]) + "\n"
+                fp.write(lut_val)
+# test end
 
         helper = MenuHelper(collection)
         logging.info("writing %s algorithms to %s module(s)", len(helper.algorithms), len(helper.modules))
@@ -152,6 +187,7 @@ class VhdlProducer(object):
                     'module': module,
                 }
                 content = self.engine.render(template, params)
+                #print("content", content)
                 module_id = f"module_{module.id:d}"
                 filename = os.path.join(directories[module_id], template)
                 with open(filename, 'w') as fp:
