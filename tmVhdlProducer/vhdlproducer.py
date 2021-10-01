@@ -90,11 +90,12 @@ def makedirs(path):
 #  GtlLutsGenerator.
 # -----------------------------------------------------------------------------
 
-def GtlLutsGenerator(bits, step):
-    lut_len = 2**bits
-    lut = [0 for x in range(lut_len)]
-    for i in range(0,lut_len):
-        lut[i] = int(round((step*i)*10**3,1)+0.5)
+def GtlLutsGenerator(cut, bits, step, prec):
+    if cut == "deta":
+        lut_len = 2**bits
+        lut = [0 for x in range(lut_len)]
+        for i in range(0,lut_len):
+            lut[i] = round(step*i*10**prec)
     return lut
 
 # -----------------------------------------------------------------------------
@@ -148,30 +149,50 @@ class VhdlProducer(object):
             makedirs(path)
         return directories
 
-## test begin
-    #def writeGtlLuts(directory):
-        #"""Write GTL LUTS to *directory*."""
-
-        #content = GtlLutsGenerator(8, 0.0435)
-        #filename = os.path.join(directory, "gtl_luts.vhd")
-        #print("writeGtlLuts:", filename)
-        #with open(filename, 'w') as fp:
-            #fp.write(content)
-## test end
-
     def write(self, collection, directory):
         """Write distributed modules (VHDL templates) to *directory*."""
 
-# test begin
+# test begin (CALO_CALO_DIFF_ETA_LUT)
         calo_eta_bits = 8
+        calo_eta_max_value = 5.0
+        calo_eta_min_value = -5.0
         calo_eta_step = 0.0435
-        content = GtlLutsGenerator(calo_eta_bits, calo_eta_step)
-        filename = os.path.join(directory, "gtl_luts.vhd")
-        logging.info("writing LUTs to: %s", filename)
+        calo_deta_prec = 3
+        calo_eta_bins = int((abs(calo_eta_min_value)+calo_eta_max_value)/calo_eta_step)+1
+        lut_len = 2**calo_eta_bits
+        lut_val_per_line = 16
+
+        lut_dir = "vhdl_gtl_luts"
+        os.path.join(directory, lut_dir)
+        lut_path = os.path.join(directory, lut_dir)
+        if not os.path.exists(lut_path):
+            makedirs(lut_path)
+
+        lut_val = [0 for x in range(lut_len)]
+        content = GtlLutsGenerator("deta", calo_eta_bits, calo_eta_step, calo_deta_prec)
+        for i in range(0,lut_len):
+            if i < calo_eta_bins:
+                lut_val[i] = content[i]
+            else:
+                lut_val[i] = 0
+        max_lut_val = max(lut_val)
+        min_lut_val = min(lut_val)
+        for mm in ["min", "max"]:
+            if mm == "min":
+                val = str(min_lut_val)
+            else:
+                val = str(max_lut_val)
+
+        gtl_luts_params = {
+            'min': min_lut_val,
+            'max': max_lut_val,
+            'lut': lut_val,
+        }
+        templ_luts = 'gtl_luts.vhd'
+        content_luts = self.engine.render(templ_luts, gtl_luts_params)
+        filename = os.path.join(directory, lut_dir, templ_luts)
         with open(filename, 'w') as fp:
-            for i in range(0,2**calo_eta_bits):
-                lut_val = str(content[i]) + "\n"
-                fp.write(lut_val)
+            fp.write(content_luts)
 # test end
 
         helper = MenuHelper(collection)
