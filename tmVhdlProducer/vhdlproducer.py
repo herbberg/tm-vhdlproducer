@@ -3,6 +3,7 @@ import logging
 import shutil
 import uuid
 import os
+import math
 
 from binascii import hexlify
 
@@ -90,13 +91,94 @@ def makedirs(path):
 #  GtlLutsGenerator.
 # -----------------------------------------------------------------------------
 
-def GtlLutsGenerator(cut, bits, step, prec):
-    if cut == "deta":
-        lut_len = 2**bits
+def GtlLutsGeneratorCalc(params):
+    if params[0] == "deta" or params[0] == "dphi":
+        lut_len = 2**params[1]
         lut = [0 for x in range(lut_len)]
+        lut_val = [0 for x in range(lut_len)]
         for i in range(0,lut_len):
-            lut[i] = round(step*i*10**prec)
-    return lut
+            lut[i] = round(params[3]*i*10**params[4])
+            for i in range(0,lut_len):
+                if i < params[2]:
+                    lut_val[i] = lut[i]
+                else:
+                    lut_val[i] = 0
+    #if params[0] == "pt":
+    return lut_val
+
+def GtlLutsGenerator(self, scales, directory):
+# calculate LUT values
+    for corr_type in ["calo_calo", "muon_muon"]:
+        if corr_type == "calo_calo":
+            eta_type = 'EG-ETA'
+            phi_type = 'EG-PHI'
+            delta_prec = scales['PRECISION-EG-EG-Delta'].getNbits()
+        if corr_type == "muon_muon":
+            eta_type = 'MU-ETA'
+            phi_type = 'MU-PHI'
+            delta_prec = scales['PRECISION-MU-MU-Delta'].getNbits()
+
+        eta_bits = scales[eta_type].getNbits()
+        eta_max_value = scales[eta_type].getMaximum()
+        eta_min_value = scales[eta_type].getMinimum()
+        eta_step = scales[eta_type].getStep()
+        eta_bins = int((abs(scales[eta_type].getMinimum())+scales[eta_type].getMaximum())/scales[eta_type].getStep())+1
+        phi_bits = scales[phi_type].getNbits()
+        phi_step = scales[phi_type].getStep()
+        phi_bins = int(scales[phi_type].getMaximum()/scales[phi_type].getStep())
+        for cut_type in ["deta", "dphi"]:
+            if cut_type == "deta":
+                param = [cut_type, eta_bits, eta_bins, eta_step, delta_prec]
+            elif cut_type == "dphi":
+                param = [cut_type, phi_bits, phi_bins, phi_step, delta_prec]
+
+            lut_val = GtlLutsGeneratorCalc(param)
+            max_val = max(lut_val)
+            min_val = min(lut_val)
+
+            if corr_type == "calo_calo" and cut_type == "deta":
+                cc_deta_lut_val = lut_val
+                cc_deta_max = max_val
+                cc_deta_min = min_val
+            elif corr_type == "calo_calo" and cut_type == "dphi":
+                cc_dphi_lut_val = lut_val
+                cc_dphi_max = max_val
+                cc_dphi_min = min_val
+            elif corr_type == "muon_muon" and cut_type == "deta":
+                mm_deta_lut_val = lut_val
+                mm_deta_max = max_val
+                mm_deta_min = min_val
+            elif corr_type == "muon_muon" and cut_type == "dphi":
+                mm_dphi_lut_val = lut_val
+                mm_dphi_max = max_val
+                mm_dphi_min = min_val
+# render template
+    lut_dir = "vhdl_gtl_luts"
+    os.path.join(directory, lut_dir)
+    lut_path = os.path.join(directory, lut_dir)
+    if not os.path.exists(lut_path):
+        makedirs(lut_path)
+    templ_luts = 'gtl_luts.vhd'
+
+    gtl_luts_params = {
+        'cc_deta_min': cc_deta_min,
+        'cc_deta_max': cc_deta_max,
+        'cc_deta_lut': cc_deta_lut_val,
+        'cc_dphi_min': cc_dphi_min,
+        'cc_dphi_max': cc_dphi_max,
+        'cc_dphi_lut': cc_dphi_lut_val,
+        'mm_deta_min': mm_deta_min,
+        'mm_deta_max': mm_deta_max,
+        'mm_deta_lut': mm_deta_lut_val,
+        'mm_dphi_min': mm_dphi_min,
+        'mm_dphi_max': mm_dphi_max,
+        'mm_dphi_lut': mm_dphi_lut_val,
+    }
+
+    content_luts = self.engine.render(templ_luts, gtl_luts_params)
+    filename = os.path.join(directory, lut_dir, templ_luts)
+    with open(filename, 'w') as fp:
+        fp.write(content_luts)
 
 # -----------------------------------------------------------------------------
 #  Template engines with custom loader environment.
@@ -152,48 +234,11 @@ class VhdlProducer(object):
     def write(self, collection, directory):
         """Write distributed modules (VHDL templates) to *directory*."""
 
-# test begin (CALO_CALO_DIFF_ETA_LUT)
-        calo_eta_bits = 8
-        calo_eta_max_value = 5.0
-        calo_eta_min_value = -5.0
-        calo_eta_step = 0.0435
-        calo_deta_prec = 3
-        calo_eta_bins = int((abs(calo_eta_min_value)+calo_eta_max_value)/calo_eta_step)+1
-        lut_len = 2**calo_eta_bits
-        lut_val_per_line = 16
-
-        lut_dir = "vhdl_gtl_luts"
-        os.path.join(directory, lut_dir)
-        lut_path = os.path.join(directory, lut_dir)
-        if not os.path.exists(lut_path):
-            makedirs(lut_path)
-
-        lut_val = [0 for x in range(lut_len)]
-        content = GtlLutsGenerator("deta", calo_eta_bits, calo_eta_step, calo_deta_prec)
-        for i in range(0,lut_len):
-            if i < calo_eta_bins:
-                lut_val[i] = content[i]
-            else:
-                lut_val[i] = 0
-        max_lut_val = max(lut_val)
-        min_lut_val = min(lut_val)
-        for mm in ["min", "max"]:
-            if mm == "min":
-                val = str(min_lut_val)
-            else:
-                val = str(max_lut_val)
-
-        gtl_luts_params = {
-            'min': min_lut_val,
-            'max': max_lut_val,
-            'lut': lut_val,
-        }
-        templ_luts = 'gtl_luts.vhd'
-        content_luts = self.engine.render(templ_luts, gtl_luts_params)
-        filename = os.path.join(directory, lut_dir, templ_luts)
-        with open(filename, 'w') as fp:
-            fp.write(content_luts)
-# test end
+# inserted generation of constants for LUTs in gtl_luts_pkg.vhd
+## begin
+        scales = collection.eventSetup.getScaleMapPtr()
+        GtlLutsGenerator(self, scales, directory)
+## end
 
         helper = MenuHelper(collection)
         logging.info("writing %s algorithms to %s module(s)", len(helper.algorithms), len(helper.modules))
