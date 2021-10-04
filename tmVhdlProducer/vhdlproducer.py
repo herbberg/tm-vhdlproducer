@@ -92,18 +92,31 @@ def makedirs(path):
 # -----------------------------------------------------------------------------
 
 def GtlLutsGeneratorCalc(params):
-    if params[0] == "deta" or params[0] == "dphi":
-        lut_len = 2**params[1]
+    # delta eta and delta phi luts
+    if params['lut'] == "deta" or params['lut'] == "dphi":
+        lut_len = 2**params['bits']
         lut = [0 for x in range(lut_len)]
         lut_val = [0 for x in range(lut_len)]
         for i in range(0,lut_len):
-            lut[i] = round(params[3]*i*10**params[4])
+            lut[i] = math.floor(params['step']*i*10**params['prec']+0.5)
             for i in range(0,lut_len):
-                if i < params[2]:
+                if i < params['bins']:
                     lut_val[i] = lut[i]
                 else:
                     lut_val[i] = 0
-    #if params[0] == "pt":
+    # TODO
+    # pt luts
+    #if params['lut'] == "pt":
+    # ...
+    # cosh deta and cos dphi luts
+    #if params['lut'] == "cosh_cos":
+    # ...
+    # sin phi and cos phi luts
+    #if params['lut'] == "sin_cos_phi":
+    # ...
+    # eta and phi conv luts
+    #if params['lut'] == "conv":
+    # ...
     return lut_val
 
 def GtlLutsGenerator(self, scales, directory):
@@ -126,29 +139,29 @@ def GtlLutsGenerator(self, scales, directory):
         phi_bits = scales[phi_type].getNbits()
         phi_step = scales[phi_type].getStep()
         phi_bins = int(scales[phi_type].getMaximum()/scales[phi_type].getStep())
-        for cut_type in ["deta", "dphi"]:
-            if cut_type == "deta":
-                param = [cut_type, eta_bits, eta_bins, eta_step, delta_prec]
-            elif cut_type == "dphi":
-                param = [cut_type, phi_bits, phi_bins, phi_step, delta_prec]
+        for lut_type in ["deta", "dphi"]:
+            if lut_type == "deta":
+                params = {'lut': lut_type, 'bits': eta_bits, 'bins': eta_bins, 'step': eta_step, 'prec': delta_prec}
+            elif lut_type == "dphi":
+                params = {'lut': lut_type, 'bits': phi_bits, 'bins': phi_bins, 'step': phi_step, 'prec': delta_prec}
 
-            lut_val = GtlLutsGeneratorCalc(param)
+            lut_val = GtlLutsGeneratorCalc(params)
             max_val = max(lut_val)
             min_val = min(lut_val)
 
-            if corr_type == "calo_calo" and cut_type == "deta":
+            if corr_type == "calo_calo" and lut_type == "deta":
                 cc_deta_lut_val = lut_val
                 cc_deta_max = max_val
                 cc_deta_min = min_val
-            elif corr_type == "calo_calo" and cut_type == "dphi":
+            elif corr_type == "calo_calo" and lut_type == "dphi":
                 cc_dphi_lut_val = lut_val
                 cc_dphi_max = max_val
                 cc_dphi_min = min_val
-            elif corr_type == "muon_muon" and cut_type == "deta":
+            elif corr_type == "muon_muon" and lut_type == "deta":
                 mm_deta_lut_val = lut_val
                 mm_deta_max = max_val
                 mm_deta_min = min_val
-            elif corr_type == "muon_muon" and cut_type == "dphi":
+            elif corr_type == "muon_muon" and lut_type == "dphi":
                 mm_dphi_lut_val = lut_val
                 mm_dphi_max = max_val
                 mm_dphi_min = min_val
