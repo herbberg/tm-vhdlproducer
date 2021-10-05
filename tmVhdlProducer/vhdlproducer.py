@@ -104,10 +104,33 @@ def GtlLutsGeneratorCalc(params):
                     lut_val[i] = lut[i]
                 else:
                     lut_val[i] = 0
-    # TODO
+
     # pt luts
-    #if params['lut'] == "pt":
-    # ...
+    if params['lut'] == "pt":
+        lut_len = 2**params['bits']
+        lut = [0 for x in range(lut_len)]
+        lut_val = [0 for x in range(lut_len)]
+        for i in range(0,lut_len):
+            if params['obj_t'] != 'mu_upt':
+                lut[i] = math.floor(((params['step']*i)+(params['step']/2))*10**params['prec']+0.5)
+            else:
+                lut[i] = int((params['step']*i+params['step']/2)*10**params['prec'])
+                #lut[i] = math.floor(((params['step']*i)+(params['step']/2))*10**params['prec']+0.5)
+            for i in range(0,lut_len):
+                if params['obj_t'] != 'mu' and params['obj_t'] != 'mu_upt':
+                    if i < params['bins']:
+                        lut_val[i] = lut[i]
+                    else:
+                        lut_val[i] = 0
+                elif params['obj_t'] == 'mu' or params['obj_t'] == 'mu_upt':
+                    if i == 0:
+                        lut_val[i] = 0
+                    elif i > 0 and i <= params['bins']:
+                        lut_val[i] = lut[i-1]
+                    else:
+                        lut_val[i] = 0
+
+    # TODO
     # cosh deta and cos dphi luts
     #if params['lut'] == "cosh_cos":
     # ...
@@ -120,13 +143,17 @@ def GtlLutsGeneratorCalc(params):
     return lut_val
 
 def GtlLutsGenerator(self, scales, directory):
-# calculate LUT values
-    for corr_type in ["calo_calo", "muon_muon"]:
+    # calculate LUT values for deta and dphi
+    for corr_type in ["calo_calo", "calo_muon", "muon_muon"]:
         if corr_type == "calo_calo":
             eta_type = 'EG-ETA'
             phi_type = 'EG-PHI'
             delta_prec = scales['PRECISION-EG-EG-Delta'].getNbits()
-        if corr_type == "muon_muon":
+        #elif corr_type == "calo_muon":
+            #eta_type = ''
+            #phi_type = ''
+            #delta_prec = scales['PRECISION-EG-MU-Delta'].getNbits()
+        elif corr_type == "muon_muon":
             eta_type = 'MU-ETA'
             phi_type = 'MU-PHI'
             delta_prec = scales['PRECISION-MU-MU-Delta'].getNbits()
@@ -149,22 +176,79 @@ def GtlLutsGenerator(self, scales, directory):
             max_val = max(lut_val)
             min_val = min(lut_val)
 
+
             if corr_type == "calo_calo" and lut_type == "deta":
+                cc_deta_ll = 2**eta_bits
                 cc_deta_lut_val = lut_val
                 cc_deta_max = max_val
                 cc_deta_min = min_val
             elif corr_type == "calo_calo" and lut_type == "dphi":
+                cc_dphi_ll = 2**phi_bits
                 cc_dphi_lut_val = lut_val
                 cc_dphi_max = max_val
                 cc_dphi_min = min_val
             elif corr_type == "muon_muon" and lut_type == "deta":
+                mm_deta_ll = 2**eta_bits
                 mm_deta_lut_val = lut_val
                 mm_deta_max = max_val
                 mm_deta_min = min_val
             elif corr_type == "muon_muon" and lut_type == "dphi":
+                mm_dphi_ll = 2**phi_bits
                 mm_dphi_lut_val = lut_val
                 mm_dphi_max = max_val
                 mm_dphi_min = min_val
+
+    # calculate LUT values for deta and dphi
+    #for obj_type in ["eg", "jet", "etm", "mu", "mu_upt"]:
+    for obj_type in ["eg", "jet", "etm", "mu", "mu_upt"]:
+        if obj_type == "eg":
+            pt_type = 'EG-ET'
+        elif obj_type == "jet":
+            pt_type = 'JET-ET'
+        elif obj_type == "etm":
+            pt_type = 'ETM-ET'
+        elif obj_type == "mu":
+            pt_type = 'MU-ET'
+        elif obj_type == "mu_upt":
+            pt_type = 'MU-UPT'
+
+        pt_bits = scales[pt_type].getNbits()
+        pt_max_value = scales[pt_type].getMaximum()
+        pt_step = scales[pt_type].getStep()
+        pt_prec = 1 # no definition in scales!
+        bins = pt_max_value/pt_step
+        params = {'lut': "pt", 'bits': pt_bits, 'bins': bins, 'step': pt_step, 'prec': pt_prec, 'obj_t': obj_type}
+
+        lut_val = GtlLutsGeneratorCalc(params)
+        max_val = max(lut_val)
+        min_val = min(lut_val)
+
+        if obj_type == "eg":
+            eg_pt_ll = 2**pt_bits
+            eg_pt_lut_val = lut_val
+            eg_pt_max = max_val
+            eg_pt_min = min_val
+        elif obj_type == "jet":
+            jet_pt_ll = 2**pt_bits
+            jet_pt_lut_val = lut_val
+            jet_pt_max = max_val
+            jet_pt_min = min_val
+        elif obj_type == "etm":
+            etm_pt_ll = 2**pt_bits
+            etm_pt_lut_val = lut_val
+            etm_pt_max = max_val
+            etm_pt_min = min_val
+        elif obj_type == "mu":
+            mu_pt_ll = 2**pt_bits
+            mu_pt_lut_val = lut_val
+            mu_pt_max = max_val
+            mu_pt_min = min_val
+        elif obj_type == "mu_upt":
+            mu_upt_ll = 2**pt_bits
+            mu_upt_lut_val = lut_val
+            mu_upt_max = max_val
+            mu_upt_min = min_val
+
 # render template
     lut_dir = "vhdl_gtl_luts"
     os.path.join(directory, lut_dir)
@@ -173,16 +257,43 @@ def GtlLutsGenerator(self, scales, directory):
         makedirs(lut_path)
     templ_luts = 'gtl_luts.vhd'
 
+    v_p_r = 16 # format for LUT dump (16 LUT values per row)
+
     gtl_luts_params = {
+        'v_p_r': v_p_r,
+        'eg_pt_ll': eg_pt_ll,
+        'eg_pt_lut': eg_pt_lut_val,
+        'eg_pt_max': eg_pt_max,
+        'eg_pt_min': eg_pt_min,
+        'jet_pt_ll': jet_pt_ll,
+        'jet_pt_lut': jet_pt_lut_val,
+        'jet_pt_max': jet_pt_max,
+        'jet_pt_min': jet_pt_min,
+        'etm_pt_ll': etm_pt_ll,
+        'etm_pt_lut': etm_pt_lut_val,
+        'etm_pt_max': etm_pt_max,
+        'etm_pt_min': etm_pt_min,
+        'mu_pt_ll': mu_pt_ll,
+        'mu_pt_lut': mu_pt_lut_val,
+        'mu_pt_max': mu_pt_max,
+        'mu_pt_min': mu_pt_min,
+        'mu_upt_ll': mu_upt_ll,
+        'mu_upt_lut': mu_upt_lut_val,
+        'mu_upt_max': mu_upt_max,
+        'mu_upt_min': mu_upt_min,
+        'cc_deta_ll': cc_deta_ll,
         'cc_deta_min': cc_deta_min,
         'cc_deta_max': cc_deta_max,
         'cc_deta_lut': cc_deta_lut_val,
+        'cc_dphi_ll': cc_dphi_ll,
         'cc_dphi_min': cc_dphi_min,
         'cc_dphi_max': cc_dphi_max,
         'cc_dphi_lut': cc_dphi_lut_val,
+        'mm_deta_ll': mm_deta_ll,
         'mm_deta_min': mm_deta_min,
         'mm_deta_max': mm_deta_max,
         'mm_deta_lut': mm_deta_lut_val,
+        'mm_dphi_ll': mm_dphi_ll,
         'mm_dphi_min': mm_dphi_min,
         'mm_dphi_max': mm_dphi_max,
         'mm_dphi_lut': mm_dphi_lut_val,
