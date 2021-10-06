@@ -95,47 +95,43 @@ def round_halfway(value: float) -> float:
     """Return nearest integral value, with halfway cases rounded away from zero."""
     return math.copysign(math.floor(0.5 + abs(value)), value)
 
-def GtlLutsGeneratorCalc(params):
-    lut_type = params['lut']
-    lut_len = 2**params['bits']
+def PtLutsCalc(bits, bins, step, prec, pt_bin_min, pt_bin_max):
+    lut_len = 2**bits
     lut = [0 for x in range(lut_len)]
     lut_val = [0 for x in range(lut_len)]
 
     # pt luts
-    if lut_type == "pt":
-        for i in range(0,lut_len):
-            if params['obj_t'] != 'mu_upt':
-                lut[i] = int(round_halfway(((params['step']*i)+(params['step']/2))*10**params['prec']))
-            else:
-                lut[i] = int(round_halfway((params['step']*i+params['step']/2)*10**params['prec']))
-            for i in range(0,lut_len):
-                if params['obj_t'] != 'mu' and params['obj_t'] != 'mu_upt':
-                    if i < params['bins']:
-                        lut_val[i] = lut[i]
-                    else:
-                        lut_val[i] = 0
-                elif params['obj_t'] == 'mu' or params['obj_t'] == 'mu_upt':
-                    if i == 0:
-                        lut_val[i] = 0
-                    elif i > 0 and i <= params['bins']:
-                        lut_val[i] = lut[i-1]
-                    else:
-                        lut_val[i] = 0
+    #if lut_type == "pt":
+    for i in range(0,lut_len):
+        lut[i] = int(round_halfway(((pt_bin_max[i] - pt_bin_min[i])/2+pt_bin_min[i])*10**prec))
+        if i < bins:
+            lut_val[i] = lut[i]
+        else:
+            lut_val[i] = 0
+
+    return lut_val
+
+def DeltaLutsCalc(lut_type, bits, bins, step, prec):
+    lut_len = 2**bits
+    lut = [0 for x in range(lut_len)]
+    lut_val = [0 for x in range(lut_len)]
 
     # delta eta, cosh deta, delta phi and cos dphi luts
     if lut_type in ["deta", "dphi", "cosh_deta", "cos_dphi"]:
         for i in range(0,lut_len):
             if lut_type == "deta" or lut_type == "dphi":
-                lut[i] = int(round_halfway(params['step']*i*10**params['prec']))
+                lut[i] = int(round_halfway(step*i*10**prec))
             elif lut_type == "cosh_deta":
-                lut[i] = int(round_halfway(math.cosh(params['step']*i)*10**params['prec']))
+                lut[i] = int(round_halfway(math.cosh(step*i)*10**prec))
             elif lut_type == "cos_dphi":
-                lut[i] = int(round_halfway(math.cos(params['step']*i)*10**params['prec']))
+                lut[i] = int(round_halfway(math.cos(step*i)*10**prec))
             for i in range(0,lut_len):
-                if i < params['bins']:
+                if i < bins:
                     lut_val[i] = lut[i]
                 else:
                     lut_val[i] = 0
+
+    return lut_val
 
     # TODO
     # sin phi and cos phi luts
@@ -165,7 +161,6 @@ def GtlLutsGenerator(self, scales, directory):
             math_prec = scales['PRECISION-MU-MU-Math'].getNbits()
 
         if corr_type == "calo_muon":
-            #eta_bits = scales['MU-ETA'].getNbits()+1
             eta_max_value = scales['EG-ETA'].getMaximum()
             eta_min_value = scales['EG-ETA'].getMinimum()
             eta_step = scales['MU-ETA'].getStep()
@@ -187,15 +182,14 @@ def GtlLutsGenerator(self, scales, directory):
 
         for lut_type in ["deta", "dphi", "cosh_deta", "cos_dphi"]:
             if lut_type == "deta":
-                params = {'lut': lut_type, 'bits': eta_bits, 'bins': eta_bins, 'step': eta_step, 'prec': delta_prec}
+                lut_val = DeltaLutsCalc(lut_type, eta_bits, eta_bins, eta_step, delta_prec)
             elif lut_type == "cosh_deta":
-                params = {'lut': lut_type, 'bits': eta_bits, 'bins': eta_bins, 'step': eta_step, 'prec': math_prec}
+                lut_val = DeltaLutsCalc(lut_type, eta_bits, eta_bins, eta_step, math_prec)
             elif lut_type == "dphi":
-                params = {'lut': lut_type, 'bits': phi_bits, 'bins': phi_bins, 'step': phi_step, 'prec': delta_prec}
+                lut_val = DeltaLutsCalc(lut_type, phi_bits, phi_bins, phi_step, delta_prec)
             elif lut_type == "cos_dphi":
-                params = {'lut': lut_type, 'bits': phi_bits, 'bins': phi_bins, 'step': phi_step, 'prec': math_prec}
+                lut_val = DeltaLutsCalc(lut_type, phi_bits, phi_bins, phi_step, math_prec)
 
-            lut_val = GtlLutsGeneratorCalc(params)
             max_val = max(lut_val)
             min_val = min(lut_val)
 
@@ -251,7 +245,6 @@ def GtlLutsGenerator(self, scales, directory):
                 mm_cos_dphi_min = min_val
 
     # calculate LUT values for deta and dphi
-    #for obj_type in ["eg", "jet", "etm", "mu", "mu_upt"]:
     for obj_type in ["eg", "jet", "etm", "mu", "mu_upt"]:
         if obj_type == "eg":
             pt_type = 'EG-ET'
@@ -264,23 +257,22 @@ def GtlLutsGenerator(self, scales, directory):
         elif obj_type == "mu_upt":
             pt_type = 'MU-UPT'
 
-        #pt_bin_min = [0]
-        #pt_bin_max = [0]
-        #idx=0
-        #for pt_bin in scales[pt_type].getBins():
-            #pt_bin_min[idx] = pt_bin.minimum
-            #pt_bin_max[idx] = pt_bin.maximum
-            #idx+=1
-        #nr_bins = pt_bin.hw_index
-        #print(nr_bins)
         pt_bits = scales[pt_type].getNbits()
         pt_max_value = scales[pt_type].getMaximum()
         pt_step = scales[pt_type].getStep()
         pt_prec = 1 # no definition in scales!
-        nr_bins = pt_max_value/pt_step
-        params = {'lut': "pt", 'bits': pt_bits, 'bins': nr_bins, 'step': pt_step, 'prec': pt_prec, 'obj_t': obj_type}
 
-        lut_val = GtlLutsGeneratorCalc(params)
+        list_len = int(pt_max_value/pt_step)
+        #print("list_len", list_len)
+        pt_bin_min = [0 for x in range(list_len+1)]
+        pt_bin_max = [0 for x in range(list_len+1)]
+        #idx=0
+        for pt_bin in scales[pt_type].getBins():
+            pt_bin_min[pt_bin.hw_index] = pt_bin.minimum
+            pt_bin_max[pt_bin.hw_index] = pt_bin.maximum
+        nr_bins = pt_bin.hw_index+1
+
+        lut_val = PtLutsCalc(pt_bits, nr_bins, pt_step, pt_prec, pt_bin_min, pt_bin_max)
         max_val = max(lut_val)
         min_val = min(lut_val)
 
@@ -322,66 +314,23 @@ def GtlLutsGenerator(self, scales, directory):
 
     gtl_luts_params = {
         'v_p_r': v_p_r,
-        'eg_pt_ll': eg_pt_ll,
-        'eg_pt_lut': eg_pt_lut_val,
-        'eg_pt_max': eg_pt_max,
-        'eg_pt_min': eg_pt_min,
-        'jet_pt_ll': jet_pt_ll,
-        'jet_pt_lut': jet_pt_lut_val,
-        'jet_pt_max': jet_pt_max,
-        'jet_pt_min': jet_pt_min,
-        'etm_pt_ll': etm_pt_ll,
-        'etm_pt_lut': etm_pt_lut_val,
-        'etm_pt_max': etm_pt_max,
-        'etm_pt_min': etm_pt_min,
-        'mu_pt_ll': mu_pt_ll,
-        'mu_pt_lut': mu_pt_lut_val,
-        'mu_pt_max': mu_pt_max,
-        'mu_pt_min': mu_pt_min,
-        'mu_upt_ll': mu_upt_ll,
-        'mu_upt_lut': mu_upt_lut_val,
-        'mu_upt_max': mu_upt_max,
-        'mu_upt_min': mu_upt_min,
-        'cc_deta_ll': cc_deta_ll,
-        'cc_deta_min': cc_deta_min,
-        'cc_deta_max': cc_deta_max,
-        'cc_deta_lut': cc_deta_lut_val,
-        'cc_dphi_ll': cc_dphi_ll,
-        'cc_dphi_min': cc_dphi_min,
-        'cc_dphi_max': cc_dphi_max,
-        'cc_dphi_lut': cc_dphi_lut_val,
-        'cm_deta_ll': cm_deta_ll,
-        'cm_deta_min': cm_deta_min,
-        'cm_deta_max': cm_deta_max,
-        'cm_deta_lut': cm_deta_lut_val,
-        'cm_dphi_ll': cm_dphi_ll,
-        'cm_dphi_min': cm_dphi_min,
-        'cm_dphi_max': cm_dphi_max,
-        'cm_dphi_lut': cm_dphi_lut_val,
-        'mm_deta_ll': mm_deta_ll,
-        'mm_deta_min': mm_deta_min,
-        'mm_deta_max': mm_deta_max,
-        'mm_deta_lut': mm_deta_lut_val,
-        'mm_dphi_ll': mm_dphi_ll,
-        'mm_dphi_min': mm_dphi_min,
-        'mm_dphi_max': mm_dphi_max,
-        'mm_dphi_lut': mm_dphi_lut_val,
-        'cc_cosh_deta_ll': cc_cosh_deta_ll,
-        'cc_cosh_deta_min': cc_cosh_deta_min,
-        'cc_cosh_deta_max': cc_cosh_deta_max,
-        'cc_cosh_deta_lut': cc_cosh_deta_lut_val,
-        'cc_cos_dphi_ll': cc_cos_dphi_ll,
-        'cc_cos_dphi_min': cc_cos_dphi_min,
-        'cc_cos_dphi_max': cc_cos_dphi_max,
-        'cc_cos_dphi_lut': cc_cos_dphi_lut_val,
-        'mm_cosh_deta_ll': mm_cosh_deta_ll,
-        'mm_cosh_deta_min': mm_cosh_deta_min,
-        'mm_cosh_deta_max': mm_cosh_deta_max,
-        'mm_cosh_deta_lut': mm_cosh_deta_lut_val,
-        'mm_cos_dphi_ll': mm_cos_dphi_ll,
-        'mm_cos_dphi_min': mm_cos_dphi_min,
-        'mm_cos_dphi_max': mm_cos_dphi_max,
-        'mm_cos_dphi_lut': mm_cos_dphi_lut_val,
+        'eg_pt_ll': eg_pt_ll, 'eg_pt_lut': eg_pt_lut_val, 'eg_pt_max': eg_pt_max, 'eg_pt_min': eg_pt_min,
+        'jet_pt_ll': jet_pt_ll, 'jet_pt_lut': jet_pt_lut_val, 'jet_pt_max': jet_pt_max, 'jet_pt_min': jet_pt_min,
+        'etm_pt_ll': etm_pt_ll, 'etm_pt_lut': etm_pt_lut_val, 'etm_pt_max': etm_pt_max, 'etm_pt_min': etm_pt_min,
+        'mu_pt_ll': mu_pt_ll, 'mu_pt_lut': mu_pt_lut_val, 'mu_pt_max': mu_pt_max, 'mu_pt_min': mu_pt_min,
+        'mu_upt_ll': mu_upt_ll, 'mu_upt_lut': mu_upt_lut_val, 'mu_upt_max': mu_upt_max, 'mu_upt_min': mu_upt_min,
+        'cc_deta_ll': cc_deta_ll, 'cc_deta_min': cc_deta_min, 'cc_deta_max': cc_deta_max, 'cc_deta_lut': cc_deta_lut_val,
+        'cc_cosh_deta_ll': cc_cosh_deta_ll, 'cc_cosh_deta_min': cc_cosh_deta_min, 'cc_cosh_deta_max': cc_cosh_deta_max, 'cc_cosh_deta_lut': cc_cosh_deta_lut_val,
+        'cc_dphi_ll': cc_dphi_ll, 'cc_dphi_min': cc_dphi_min, 'cc_dphi_max': cc_dphi_max, 'cc_dphi_lut': cc_dphi_lut_val,
+        'cc_cos_dphi_ll': cc_cos_dphi_ll, 'cc_cos_dphi_min': cc_cos_dphi_min, 'cc_cos_dphi_max': cc_cos_dphi_max, 'cc_cos_dphi_lut': cc_cos_dphi_lut_val,
+        'cm_deta_ll': cm_deta_ll, 'cm_deta_min': cm_deta_min, 'cm_deta_max': cm_deta_max, 'cm_deta_lut': cm_deta_lut_val,
+        #'cm_cosh_deta_ll': cm_cosh_deta_ll, 'cm_cosh_deta_min': cm_cosh_deta_min, 'cm_cosh_deta_max': cm_cosh_deta_max, 'cm_cosh_deta_lut': cm_cosh_deta_lut_val,
+        'cm_dphi_ll': cm_dphi_ll, 'cm_dphi_min': cm_dphi_min, 'cm_dphi_max': cm_dphi_max, 'cm_dphi_lut': cm_dphi_lut_val,
+        #'cm_cos_dphi_ll': cm_cos_dphi_ll, 'cm_cos_dphi_min': cm_cos_dphi_min, 'cm_cos_dphi_max': cm_cos_dphi_max, 'cm_cos_dphi_lut': cm_cos_dphi_lut_val,
+        'mm_deta_ll': mm_deta_ll, 'mm_deta_min': mm_deta_min, 'mm_deta_max': mm_deta_max, 'mm_deta_lut': mm_deta_lut_val,
+        'mm_cosh_deta_ll': mm_cosh_deta_ll, 'mm_cosh_deta_min': mm_cosh_deta_min, 'mm_cosh_deta_max': mm_cosh_deta_max, 'mm_cosh_deta_lut': mm_cosh_deta_lut_val,
+        'mm_dphi_ll': mm_dphi_ll, 'mm_dphi_min': mm_dphi_min, 'mm_dphi_max': mm_dphi_max, 'mm_dphi_lut': mm_dphi_lut_val,
+        'mm_cos_dphi_ll': mm_cos_dphi_ll, 'mm_cos_dphi_min': mm_cos_dphi_min, 'mm_cos_dphi_max': mm_cos_dphi_max, 'mm_cos_dphi_lut': mm_cos_dphi_lut_val,
     }
 
     content_luts = self.engine.render(templ_luts, gtl_luts_params)
