@@ -72,3 +72,44 @@ type muon_muon_diff_phi_lut_array is array (0 to 2**(MUON_PHI_HIGH-MUON_PHI_LOW+
 constant MU_MU_DIFF_PHI_LUT : muon_muon_diff_phi_lut_array := (
 {{ dump_lut(mm_dphi_ll, v_p_r, mm_dphi_lut)|trim }}
 );
+
+-- calo-muon differences LUTs
+type calo_muon_diff_eta_lut_array is array (0 to 2**(MUON_ETA_HIGH-MUON_ETA_LOW+1+1)-1) of natural range {{cm_deta_min}} to {{cm_deta_max}};
+
+constant CALO_MU_DIFF_ETA_LUT : calo_muon_diff_eta_lut_array := (
+{{ dump_lut(cm_deta_ll, v_p_r, cm_deta_lut)|trim }}
+);
+
+type calo_muon_diff_phi_lut_array is array (0 to 2**(MUON_PHI_HIGH-MUON_PHI_LOW+1)-1) of natural range {{cm_dphi_min}} to {{cm_dphi_max}};
+
+constant CALO_MU_DIFF_PHI_LUT : calo_muon_diff_phi_lut_array := (
+{{ dump_lut(cm_dphi_ll, v_p_r, cm_dphi_lut)|trim }}
+);
+
+-- calo-calo cosh deta LUTs
+type calo_calo_cosh_deta_lut_array is array (0 to 2**MAX_CALO_ETA_BITS-1) of natural range {{cc_cosh_deta_min}} to {{cc_cosh_deta_max}};
+
+constant CALO_CALO_COSH_DETA_LUT : calo_calo_cosh_deta_lut_array := (
+{{ dump_lut(cc_cosh_deta_ll, v_p_r, cc_cosh_deta_lut)|trim }}
+);
+
+-- calo-calo cos dphi LUTs
+type calo_calo_cos_dphi_lut_array is array (0 to 2**MAX_CALO_PHI_BITS-1) of integer range {{cc_cos_dphi_min}} to {{cc_cos_dphi_max}};
+
+constant CALO_CALO_COS_DPHI_LUT : calo_calo_cos_dphi_lut_array := (
+{{ dump_lut(cc_cos_dphi_ll, v_p_r, cc_cos_dphi_lut)|trim }}
+);
+
+-- muon-muon cosh deta LUTs
+type muon_muon_cosh_deta_lut_array is array (0 to 2**(MUON_ETA_HIGH-MUON_ETA_LOW+1)-1) of natural range {{mm_cosh_deta_min}} to {{mm_cosh_deta_max}};
+
+constant MU_MU_COSH_DETA_LUT : muon_muon_cosh_deta_lut_array := (
+{{ dump_lut(mm_cosh_deta_ll, v_p_r, mm_cosh_deta_lut)|trim }}
+);
+
+-- muon-muon cos dphi LUTs
+type muon_muon_cos_dphi_lut_array is array (0 to 2**(MUON_PHI_HIGH-MUON_PHI_LOW+1)-1) of integer range {{mm_cos_dphi_min}} to {{mm_cos_dphi_max}};
+
+constant MU_MU_COS_DPHI_LUT : muon_muon_cos_dphi_lut_array := (
+{{ dump_lut(mm_cos_dphi_ll, v_p_r, mm_cos_dphi_lut)|trim }}
+);
