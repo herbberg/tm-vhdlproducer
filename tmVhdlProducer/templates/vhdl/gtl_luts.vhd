@@ -13,38 +13,38 @@
 {%- endmacro -%}
 
 -- eg and tau pt LUTs
-type eg_pt_lut_array is array (0 to 2**(EG_ET_HIGH-EG_ET_LOW+1)-1) of natural range {{eg_param['min']}} to {{eg_param['max']}};
+type eg_pt_lut_array is array (0 to 2**(EG_ET_HIGH-EG_ET_LOW+1)-1) of natural range {{pt_param['EG-ET']['min']}} to {{pt_param['EG-ET']['max']}};
 
 constant EG_PT_LUT : eg_pt_lut_array := (
-{{ dump_lut(eg_param['ll'], v_p_r, eg_param['lut'])|trim }}
+{{ dump_lut(pt_param['EG-ET']['ll'], v_p_r, pt_param['EG-ET']['lut'])|trim }}
 );
 
 -- jet pt LUT
-type jet_pt_lut_array is array (0 to 2**(JET_ET_HIGH-JET_ET_LOW+1)-1) of natural range {{jet_param['min']}} to {{jet_param['max']}};
+type jet_pt_lut_array is array (0 to 2**(JET_ET_HIGH-JET_ET_LOW+1)-1) of natural range {{pt_param['JET-ET']['min']}} to {{pt_param['JET-ET']['max']}};
 
 constant JET_PT_LUT : jet_pt_lut_array := (
-{{ dump_lut(jet_param['ll'], v_p_r, jet_param['lut'])|trim }}
+{{ dump_lut(pt_param['JET-ET']['ll'], v_p_r, pt_param['JET-ET']['lut'])|trim }}
 );
 
 -- esums pt LUTs
-type etm_pt_lut_array is array (0 to 2**(ETM_ET_HIGH-ETM_ET_LOW+1)-1) of natural range {{etm_param['min']}} to {{etm_param['max']}};
+type etm_pt_lut_array is array (0 to 2**(ETM_ET_HIGH-ETM_ET_LOW+1)-1) of natural range {{pt_param['ETM-ET']['min']}} to {{pt_param['ETM-ET']['max']}};
 
 constant ETM_PT_LUT : etm_pt_lut_array := (
-{{ dump_lut(etm_param['ll'], v_p_r, etm_param['lut'])|trim }}
+{{ dump_lut(pt_param['ETM-ET']['ll'], v_p_r, pt_param['ETM-ET']['lut'])|trim }}
 );
 
 -- muon pt LUT
-type muon_pt_lut_array is array (0 to 2**(MUON_PT_HIGH-MUON_PT_LOW+1)-1) of natural range {{mu_pt_param['min']}} to {{mu_pt_param['max']}};
+type muon_pt_lut_array is array (0 to 2**(MUON_PT_HIGH-MUON_PT_LOW+1)-1) of natural range {{pt_param['MU-ET']['min']}} to {{pt_param['MU-ET']['max']}};
 
 constant MU_PT_LUT : muon_pt_lut_array := (
-{{ dump_lut(mu_pt_param['ll'], v_p_r, mu_pt_param['lut'])|trim }}
+{{ dump_lut(pt_param['MU-ET']['ll'], v_p_r, pt_param['MU-ET']['lut'])|trim }}
 );
 
 -- muon unconstraint pt LUT
-type muon_upt_lut_array is array (0 to 2**(MUON_UPT_HIGH-MUON_UPT_LOW+1)-1) of natural range {{mu_upt_param['min']}} to {{mu_upt_param['max']}};
+type muon_upt_lut_array is array (0 to 2**(MUON_UPT_HIGH-MUON_UPT_LOW+1)-1) of natural range {{pt_param['MU-UPT']['min']}} to {{pt_param['MU-UPT']['max']}};
 
 constant MU_UPT_LUT : muon_upt_lut_array := (
-{{ dump_lut(mu_upt_param['ll'], v_p_r, mu_upt_param['lut'])|trim }}
+{{ dump_lut(pt_param['MU-UPT']['ll'], v_p_r, pt_param['MU-UPT']['lut'])|trim }}
 );
 
 -- calo-calo differences LUTs

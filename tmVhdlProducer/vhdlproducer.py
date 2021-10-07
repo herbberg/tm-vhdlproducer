@@ -161,7 +161,7 @@ def GtlLutsGenerator(self, scales, directory):
             eta_step = scales['MU-ETA'].getStep()
 
         eta_bins = int(round_halfway((abs(eta_min_value)+eta_max_value)/eta_step))
-        print("eta_bits:", eta_bits, ", eta_step:", eta_step, ", eta_bins:", eta_bins, ", eta_max_value:", eta_max_value, ", eta_min_value:", eta_min_value)
+        #print("eta_bits:", eta_bits, ", eta_step:", eta_step, ", eta_bins:", eta_bins, ", eta_max_value:", eta_max_value, ", eta_min_value:", eta_min_value)
 
         for lut_type in ["deta", "dphi", "cosh_deta", "cos_dphi"]:
             if lut_type == "deta":
@@ -211,6 +211,7 @@ def GtlLutsGenerator(self, scales, directory):
 
     # calculate LUT values for deta and dphi
     pt_scales = ['EG-ET', 'JET-ET', 'ETM-ET', 'MU-ET', 'MU-UPT']
+    pt_param = {}
     for obj_idx, pt_scale in enumerate(pt_scales):
 
         pt_bits = scales[pt_scale].getNbits()
@@ -231,18 +232,8 @@ def GtlLutsGenerator(self, scales, directory):
         max_val = max(lut_val)
         min_val = min(lut_val)
         ll = 2**pt_bits
-        param_dict = {'ll': ll, 'min': min_val, 'max': max_val, 'lut': lut_val}
 
-        if pt_scale == 'EG-ET':
-            eg_param = param_dict
-        elif pt_scale == 'JET-ET':
-            jet_param = param_dict
-        elif pt_scale == 'ETM-ET':
-            etm_param = param_dict
-        elif pt_scale == 'MU-ET':
-            mu_pt_param = param_dict
-        elif pt_scale == 'MU-UPT':
-            mu_upt_param = param_dict
+        pt_param[pt_scale]={'ll': ll, 'min': min_val, 'max': max_val, 'lut': lut_val}
 
 # render template
     lut_dir = "vhdl_gtl_luts"
@@ -256,11 +247,7 @@ def GtlLutsGenerator(self, scales, directory):
 
     gtl_luts_params = {
         'v_p_r': v_p_r,
-        'eg_param': eg_param,
-        'jet_param': jet_param,
-        'etm_param': etm_param,
-        'mu_pt_param': mu_pt_param,
-        'mu_upt_param': mu_upt_param,
+        'pt_param': pt_param,
         'cc_deta_param': cc_deta_param,
         'cc_cosh_deta_param': cc_cosh_deta_param,
         'cc_dphi_param': cc_dphi_param,
