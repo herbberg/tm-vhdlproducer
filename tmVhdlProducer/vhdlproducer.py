@@ -14,6 +14,8 @@ from jinja2 import StrictUndefined
 import tmEventSetup
 import tmTable
 
+from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts
+
 from .vhdlhelper import MenuHelper
 from .vhdlhelper import vhdl_bool
 from .vhdlhelper import bx_encode
@@ -115,7 +117,7 @@ def DeltaLutsCalc(lut_type, bits, bins, step, prec):
     lut_val = [0 for x in range(lut_len)]
 
     # delta eta, cosh deta, delta phi and cos dphi luts
-    if lut_type in ["deta", "dphi", "cosh_deta", "cos_dphi"]:
+    if lut_type in corr_luts:
         for i in range(0,lut_len):
             if lut_type == "deta" or lut_type == "dphi":
                 lut[i] = int(round_halfway(step*i*10**prec))
@@ -139,8 +141,11 @@ def DeltaLutsCalc(lut_type, bits, bins, step, prec):
     return lut_val
 
 def GtlLutsGenerator(self, scales, directory):
-    #for corr_type in ["EG-EG", "EG-MU", "MU-MU"]:
-    for corr_type in ["EG-EG", "EG-MU", "MU-MU"]:
+    corr_param = {}
+    for corr_type in corr_types:
+        corr = corr_type
+        corr_param[corr] = {}
+
         eta_type = corr_type.split('-')[0]+"-ETA"
         phi_type = corr_type.split('-')[1]+"-PHI"
 
@@ -161,58 +166,23 @@ def GtlLutsGenerator(self, scales, directory):
             eta_step = scales['MU-ETA'].getStep()
 
         eta_bins = int(round_halfway((abs(eta_min_value)+eta_max_value)/eta_step))
-        #print("eta_bits:", eta_bits, ", eta_step:", eta_step, ", eta_bins:", eta_bins, ", eta_max_value:", eta_max_value, ", eta_min_value:", eta_min_value)
 
-        for lut_type in ["deta", "dphi", "cosh_deta", "cos_dphi"]:
-            if lut_type == "deta":
-                lut_val = DeltaLutsCalc(lut_type, eta_bits, eta_bins, eta_step, delta_prec)
-            elif lut_type == "cosh_deta":
-                lut_val = DeltaLutsCalc(lut_type, eta_bits, eta_bins, eta_step, math_prec)
-            elif lut_type == "dphi":
-                lut_val = DeltaLutsCalc(lut_type, phi_bits, phi_bins, phi_step, delta_prec)
-            elif lut_type == "cos_dphi":
-                lut_val = DeltaLutsCalc(lut_type, phi_bits, phi_bins, phi_step, math_prec)
+        bits = {"deta": eta_bits, "dphi": phi_bits, "cosh_deta": eta_bits, "cos_dphi": phi_bits}
+        bins = {"deta": eta_bins, "dphi": phi_bins, "cosh_deta": eta_bins, "cos_dphi": phi_bins}
+        step = {"deta": eta_step, "dphi": phi_step, "cosh_deta": eta_step, "cos_dphi": phi_step}
+        prec = {"deta": delta_prec, "dphi": delta_prec, "cosh_deta": math_prec, "cos_dphi": math_prec}
 
-            max_val = max(lut_val)
-            min_val = min(lut_val)
+        for corr_lut in corr_luts:
+            delta = corr_lut
+            corr_param[corr][delta] = {}
 
-            if lut_type == "deta" or lut_type == "cosh_deta":
-                param = {'ll': 2**eta_bits, 'min': min_val, 'max':max_val, 'lut': lut_val}
-            elif lut_type == "dphi" or lut_type == "cos_dphi":
-                param = {'ll': 2**phi_bits, 'min': min_val, 'max':max_val, 'lut': lut_val}
-
-            if corr_type == "EG-EG":
-                if lut_type == "deta":
-                    cc_deta_param = param
-                elif lut_type == "cosh_deta":
-                    cc_cosh_deta_param = param
-                elif lut_type == "dphi":
-                    cc_dphi_param = param
-                elif lut_type == "cos_dphi":
-                    cc_cos_dphi_param = param
-            elif corr_type == "EG-MU":
-                if lut_type == "deta":
-                    cm_deta_param = param
-                elif lut_type == "cosh_deta":
-                    cm_cosh_deta_param = param
-                elif lut_type == "dphi":
-                    cm_dphi_param = param
-                elif lut_type == "cos_dphi":
-                    cm_cos_dphi_param = param
-            elif corr_type == "MU-MU":
-                if lut_type == "deta":
-                    mm_deta_param = param
-                elif lut_type == "cosh_deta":
-                    mm_cosh_deta_param = param
-                elif lut_type == "dphi":
-                    mm_dphi_param = param
-                elif lut_type == "cos_dphi":
-                    mm_cos_dphi_param = param
+            lut_val = DeltaLutsCalc(corr_lut, bits[corr_lut], bins[corr_lut], step[corr_lut], prec[corr_lut])
+            param = {'ll': 2**bits[corr_lut], 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
+            corr_param[corr][delta] = param
 
     # calculate LUT values for deta and dphi
-    pt_scales = ['EG-ET', 'JET-ET', 'ETM-ET', 'MU-ET', 'MU-UPT']
     pt_param = {}
-    for obj_idx, pt_scale in enumerate(pt_scales):
+    for pt_scale in pt_scales:
 
         pt_bits = scales[pt_scale].getNbits()
         pt_max_value = scales[pt_scale].getMaximum()
@@ -236,30 +206,17 @@ def GtlLutsGenerator(self, scales, directory):
         pt_param[pt_scale]={'ll': ll, 'min': min_val, 'max': max_val, 'lut': lut_val}
 
 # render template
-    lut_dir = "vhdl_gtl_luts"
     os.path.join(directory, lut_dir)
     lut_path = os.path.join(directory, lut_dir)
     if not os.path.exists(lut_path):
         makedirs(lut_path)
-    templ_luts = 'gtl_luts.vhd'
 
     v_p_r = 16 # format for LUT dump (16 LUT values per row)
 
     gtl_luts_params = {
         'v_p_r': v_p_r,
         'pt_param': pt_param,
-        'cc_deta_param': cc_deta_param,
-        'cc_cosh_deta_param': cc_cosh_deta_param,
-        'cc_dphi_param': cc_dphi_param,
-        'cc_cos_dphi_param': cc_cos_dphi_param,
-        'cm_deta_param': cm_deta_param,
-        'cm_cosh_deta_param': cm_cosh_deta_param,
-        'cm_dphi_param': cm_dphi_param,
-        'cm_cos_dphi_param': cm_cos_dphi_param,
-        'mm_deta_param': mm_deta_param,
-        'mm_cosh_deta_param': mm_cosh_deta_param,
-        'mm_dphi_param': mm_dphi_param,
-        'mm_cos_dphi_param': mm_cos_dphi_param,
+        'corr_param': corr_param,
     }
 
     content_luts = self.engine.render(templ_luts, gtl_luts_params)
