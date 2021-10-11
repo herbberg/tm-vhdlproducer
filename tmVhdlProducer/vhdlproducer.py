@@ -14,7 +14,7 @@ from jinja2 import StrictUndefined
 import tmEventSetup
 import tmTable
 
-from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts
+from .constants import corr_types, corr_luts, pt_prec, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
 
 from .vhdlhelper import MenuHelper
 from .vhdlhelper import vhdl_bool
@@ -97,8 +97,7 @@ def round_halfway(value: float) -> float:
     """Return nearest integral value, with halfway cases rounded away from zero."""
     return math.copysign(math.floor(0.5 + abs(value)), value)
 
-def PtLutsCalc(bits, bins, step, prec, pt_bin_min, pt_bin_max):
-    lut_len = 2**bits
+def ptLutsCalc(lut_len, bins, step, prec, pt_bin_min, pt_bin_max):
     lut = [0 for x in range(lut_len)]
     lut_val = [0 for x in range(lut_len)]
 
@@ -111,8 +110,7 @@ def PtLutsCalc(bits, bins, step, prec, pt_bin_min, pt_bin_max):
             lut_val[i] = 0
     return lut_val
 
-def DeltaLutsCalc(lut_type, bits, bins, step, prec):
-    lut_len = 2**bits
+def deltaLutsCalc(lut_type, lut_len, bins, step, prec):
     lut = [0 for x in range(lut_len)]
     lut_val = [0 for x in range(lut_len)]
 
@@ -131,20 +129,62 @@ def DeltaLutsCalc(lut_type, bits, bins, step, prec):
                 else:
                     lut_val[i] = 0
 
+    return lut_val
+
+def phiLutsCalc(lut_type, lut_len, bins, step, prec):
+    lut = [0 for x in range(lut_len)]
+    lut_val = [0 for x in range(lut_len)]
+
+    # sin and cos phi luts (value based on mid of bin)
+    if lut_type in sin_cos_phi_luts:
+        for i in range(0,lut_len):
+            if lut_type == "sin_phi":
+                lut[i] = int(round_halfway(math.sin(step*i+(step/2))*10**prec))
+            elif lut_type == "cos_phi":
+                lut[i] = int(round_halfway(math.cos(step*i+(step/2))*10**prec))
+            for i in range(0,lut_len):
+                if i < bins:
+                    lut_val[i] = lut[i]
+                else:
+                    lut_val[i] = 0
+
+    return lut_val
+
     # TODO
-    # sin phi and cos phi luts
-    #if lut_type == "sin_cos_phi":
-    # ...
     # eta and phi conv luts
     #if lut_type == "conv":
     # ...
     return lut_val
 
-def GtlLutsGenerator(self, scales, directory):
+def gtlLutsGenerator(self, scales, directory):
+    # calculate LUT values for pt (definition of "pt_scales" in constants.py)
+    pt_param = {}
+    for pt_scale in pt_scales:
+
+        pt_bits = scales[pt_scale].getNbits()
+        pt_max_value = scales[pt_scale].getMaximum()
+        pt_step = scales[pt_scale].getStep()
+
+        lut_size = 2**pt_bits
+
+        pt_bin_min = [0 for x in range(lut_size+1)]
+        pt_bin_max = [0 for x in range(lut_size+1)]
+
+        for pt_bin in scales[pt_scale].getBins():
+            pt_bin_min[pt_bin.hw_index] = pt_bin.minimum
+            pt_bin_max[pt_bin.hw_index] = pt_bin.maximum
+
+        nr_bins = pt_bin.hw_index+1
+
+        lut_val = ptLutsCalc(lut_size, nr_bins, pt_step, pt_prec, pt_bin_min, pt_bin_max)
+
+        pt_param[pt_scale]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
+
+    # calculate LUT values for deta and dphi (definition of "corr_types" in constants.py)
     corr_param = {}
     for corr_type in corr_types:
-        corr = corr_type
-        corr_param[corr] = {}
+
+        corr_param[corr_type] = {}
 
         eta_type = corr_type.split('-')[0]+"-ETA"
         phi_type = corr_type.split('-')[1]+"-PHI"
@@ -162,48 +202,47 @@ def GtlLutsGenerator(self, scales, directory):
         math_prec = scales['PRECISION-'+corr_type+'-Math'].getNbits()
 
         if corr_type == "EG-MU":
-            eta_bits = scales['MU-ETA'].getNbits()+1 # +1 for correct len of calo-muon cosh deta lut
+            eta_bits = scales['MU-ETA'].getNbits()+1 # +1 for correct length of calo-muon cosh deta lut
             eta_step = scales['MU-ETA'].getStep()
 
         eta_bins = int(round_halfway((abs(eta_min_value)+eta_max_value)/eta_step))
 
-        bits = {"deta": eta_bits, "dphi": phi_bits, "cosh_deta": eta_bits, "cos_dphi": phi_bits}
+        lut_size = {"deta": 2**eta_bits, "dphi": 2**phi_bits, "cosh_deta": 2**eta_bits, "cos_dphi": 2**phi_bits}
         bins = {"deta": eta_bins, "dphi": phi_bins, "cosh_deta": eta_bins, "cos_dphi": phi_bins}
         step = {"deta": eta_step, "dphi": phi_step, "cosh_deta": eta_step, "cos_dphi": phi_step}
         prec = {"deta": delta_prec, "dphi": delta_prec, "cosh_deta": math_prec, "cos_dphi": math_prec}
 
         for corr_lut in corr_luts:
-            delta = corr_lut
-            corr_param[corr][delta] = {}
 
-            lut_val = DeltaLutsCalc(corr_lut, bits[corr_lut], bins[corr_lut], step[corr_lut], prec[corr_lut])
-            param = {'ll': 2**bits[corr_lut], 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
-            corr_param[corr][delta] = param
+            corr_param[corr_type][corr_lut] = {}
 
-    # calculate LUT values for deta and dphi
-    pt_param = {}
-    for pt_scale in pt_scales:
+            lut_val = deltaLutsCalc(corr_lut, lut_size[corr_lut], bins[corr_lut], step[corr_lut], prec[corr_lut])
 
-        pt_bits = scales[pt_scale].getNbits()
-        pt_max_value = scales[pt_scale].getMaximum()
-        pt_step = scales[pt_scale].getStep()
-        pt_prec = 1 # no definition in scales!
+            param = {'lut_size': lut_size[corr_lut], 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
+            corr_param[corr_type][corr_lut] = param
 
-        scale_len = int(pt_max_value/pt_step)
-        pt_bin_min = [0 for x in range(scale_len+1)]
-        pt_bin_max = [0 for x in range(scale_len+1)]
+    # calculate LUT values for sine and cosine phi (definition of "phi_scales" in constants.py)
+    sin_cos_phi_param = {}
+    for phi_scale in phi_scales:
 
-        for pt_bin in scales[pt_scale].getBins():
-            pt_bin_min[pt_bin.hw_index] = pt_bin.minimum
-            pt_bin_max[pt_bin.hw_index] = pt_bin.maximum
-        nr_bins = pt_bin.hw_index+1
+        obj_type = phi_scale.split('-')[0]
+        corr_param[obj_type] = {}
 
-        lut_val = PtLutsCalc(pt_bits, nr_bins, pt_step, pt_prec, pt_bin_min, pt_bin_max)
-        max_val = max(lut_val)
-        min_val = min(lut_val)
-        ll = 2**pt_bits
+        phi_bits = scales[phi_scale].getNbits()
+        phi_step = scales[phi_scale].getStep()
+        phi_bins = int(scales[phi_scale].getMaximum()/scales[phi_scale].getStep())
+        print(obj_type, phi_bins)
+        tbpt_prec = scales['PRECISION-'+obj_type+'-'+obj_type+'-TwoBodyPtMath'].getNbits()
 
-        pt_param[pt_scale]={'ll': ll, 'min': min_val, 'max': max_val, 'lut': lut_val}
+        lut_size = 2**phi_bits
+
+        for lut_type in sin_cos_phi_luts:
+
+            sin_cos_phi_param[obj_type][lut_type] = {}
+
+            lut_val = phiLutsCalc(lut_type, lut_size, phi_bins, phi_step, tbpt_prec)
+
+            sin_cos_phi_param[obj_type][lut_type]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
 
 # render template
     os.path.join(directory, lut_dir)
@@ -211,12 +250,10 @@ def GtlLutsGenerator(self, scales, directory):
     if not os.path.exists(lut_path):
         makedirs(lut_path)
 
-    v_p_r = 16 # format for LUT dump (16 LUT values per row)
-
     gtl_luts_params = {
-        'v_p_r': v_p_r,
         'pt_param': pt_param,
         'corr_param': corr_param,
+        'sin_cos_phi_param': sin_cos_phi_param,
     }
 
     content_luts = self.engine.render(templ_luts, gtl_luts_params)
@@ -278,11 +315,9 @@ class VhdlProducer(object):
     def write(self, collection, directory):
         """Write distributed modules (VHDL templates) to *directory*."""
 
-# inserted generation of constants for LUTs in gtl_luts_pkg.vhd
-## begin
+        # generation of LUTs in gtl_luts.vhd (for gtl_luts_pkg.vhd)
         scales = collection.eventSetup.getScaleMapPtr()
-        GtlLutsGenerator(self, scales, directory)
-## end
+        gtlLutsGenerator(self, scales, directory)
 
         helper = MenuHelper(collection)
         logging.info("writing %s algorithms to %s module(s)", len(helper.algorithms), len(helper.modules))
