@@ -226,7 +226,7 @@ def gtlLutsGenerator(self, scales, directory):
     for phi_scale in phi_scales:
 
         obj_type = phi_scale.split('-')[0]
-        corr_param[obj_type] = {}
+        sin_cos_phi_param[obj_type] = {}
 
         phi_bits = scales[phi_scale].getNbits()
         phi_step = scales[phi_scale].getStep()
