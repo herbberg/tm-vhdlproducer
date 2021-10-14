@@ -142,7 +142,7 @@ constant CALO_COS_PHI_LUT : calo_sin_cos_phi_lut_array := (
 );
 
 -- Center of phi bins for calculation of cosine and sine with 4 digits after decimal point
-type muon_sin_cos_phi_lut_array is array (0 to 2**MUON_PHI_BITS-1) of integer range sin_cos_phi_param['MU']['sin_phi']['min']}} to {{sin_cos_phi_param['MU']['sin_phi']['max']}};
+type muon_sin_cos_phi_lut_array is array (0 to 2**MUON_PHI_BITS-1) of integer range {{sin_cos_phi_param['MU']['sin_phi']['min']}} to {{sin_cos_phi_param['MU']['sin_phi']['max']}};
 
 constant MUON_SIN_PHI_LUT : muon_sin_cos_phi_lut_array := (
 {{ dump_lut(sin_cos_phi_param['MU']['sin_phi']['lut_size'], sin_cos_phi_param['MU']['sin_phi']['lut'])|trim }}
