@@ -440,6 +440,8 @@ class ResourceOverflowError(RuntimeError):
     """Custom exception class for reosurce overflow errors."""
     pass
 
+f_resources = open("resources.txt", 'w')
+
 class ResourceTray(object):
     """Scale tray for calculating condition and algorithm payloads. It loads
     payload and threshold specifications from a JSON file.
@@ -548,10 +550,18 @@ class ResourceTray(object):
     def mass_calc(self):
         """Returns resource consumption payload for one unit of mass_calc calculation for mass.
         >>> tray.mass_calc()
-        Payload(sliceLUTs=301, processors=0, brams=0)
+        Payload(sliceLUTs=24, processors=3, brams=0)
         """
         mass_calc = self.resources.mass_calc
         return Payload(brams=mass_calc.brams, sliceLUTs=mass_calc.sliceLUTs, processors=mass_calc.processors)
+
+    def massdr_calc(self):
+        """Returns resource consumption payload for one unit of massdr_calc calculation for mass over dr.
+        >>> tray.massdr_calc()
+        Payload(sliceLUTs=143, processors=3, brams=18)
+        """
+        massdr_calc = self.resources.massdr_calc
+        return Payload(brams=massdr_calc.brams, sliceLUTs=massdr_calc.sliceLUTs, processors=massdr_calc.processors)
 # =================================================================================
 
     def find_object_cut(self, object):
@@ -667,6 +677,8 @@ class ResourceTray(object):
         >>> tray.measure(condition)
         Payload(sliceLUTs=0.42%, processors=0.00%)
         """
+        f_resources = open("resources.txt", 'a')
+
         if isinstance(condition, tmEventSetup.esCondition):
             condition = ConditionHandle(condition, Payload()) # cast to handle with empty payload
 
@@ -694,6 +706,10 @@ class ResourceTray(object):
         brams = instance_objects.brams
         sliceLUTs = instance_objects.sliceLUTs
         processors = instance_objects.processors
+
+        print("==", file=f_resources)
+        print(condition.name, file=f_resources)
+
         for object in condition.objects:
             object_key = self.map_object(ObjectTypeKey[object.type])
             for cut in object.cuts:
@@ -705,10 +721,15 @@ class ResourceTray(object):
                         brams += object_cut.brams * object.slice_size
                         sliceLUTs += object_cut.sliceLUTs * object.slice_size
                         processors += object_cut.processors * object.slice_size
+
+                        print(cut.name, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+                        #print("=", file=f_resources)
+
                     else:
                         logging.warning(f"no object cut entry for cut type: {cut_key}")
                 else:
                     logging.warning(f"no object cut entry for object type: {object_key}")
+            #print("=", file=f_resources)
         payload = Payload(brams, sliceLUTs, processors)
 # =================================================================================
 
@@ -727,10 +748,16 @@ class ResourceTray(object):
                     brams = result.brams * int(factor)
                     sliceLUTs = result.sliceLUTs * int(factor)
                     processors = result.processors * int(factor)
+
+                    print(name, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+                    #print("==", file=f_resources)
+
                     cut_payload = Payload(brams, sliceLUTs, processors)
                     payload += cut_payload
         logging.debug("%s.measure(<instance %s>) => %s", self.__class__.__name__, condition.name, payload)
         return payload
+
+        f_resources.close()
 
 class Module(object):
     """Represents a uGT module implementation holding a subset of algorithms."""
@@ -748,6 +775,7 @@ class Module(object):
         self.differences = tray.differences()
         self.cosh_deta_cos_dphi = tray.cosh_deta_cos_dphi()
         self.mass_calc = tray.mass_calc()
+        self.massdr_calc = tray.massdr_calc()
 # =================================================================================
 
     def __len__(self):
@@ -809,6 +837,9 @@ class Module(object):
             tmEventSetup.InvariantMassOvRm,
             tmEventSetup.TransverseMassOvRm,
             tmEventSetup.InvariantMass3,
+            #tmEventSetup.InvariantMassDeltaR,
+        ]
+        massdr_cond = [
             tmEventSetup.InvariantMassDeltaR,
         ]
         muon_type = [
@@ -846,10 +877,12 @@ class Module(object):
 
         def calc_fdl_payload() -> Payload:
             """Payload for FDL algo slices."""
+
             size = len(self.algorithms)
             brams = self.fdl_algo_slice.brams * size
             sliceLUTs = self.fdl_algo_slice.sliceLUTs * size
             processors = self.fdl_algo_slice.processors * size
+
             return Payload(brams, sliceLUTs, processors)
 
         def calc_diff_combinations() -> dict:
@@ -889,13 +922,21 @@ class Module(object):
 
         def calc_diff_payload() -> Payload:
             """Payload for instances of "differences" calculations."""
+            f_resources = open("resources.txt", 'a')
+            print("==", file=f_resources)
+
             brams = 0
             sliceLUTs = 0
             processors = 0
             for combination in calc_diff_combinations():
                 factor = calc_factor(combination)
                 sliceLUTs += self.differences.sliceLUTs * factor
+
+                print("DIFF:", combination, "=> SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+
             return Payload(brams, sliceLUTs, processors)
+
+            f_resources.close()
 
         def calc_cosh_cos_mass_combinations() -> dict:
             """Object combinations for instances of "cosh_deta_cos_dphi" calculations."""
@@ -911,15 +952,55 @@ class Module(object):
 
         def calc_cosh_cos_mass_payload() -> Payload:
             """Payload for instances of "cosh_deta_cos_dphi" calculations."""
+            f_resources = open("resources.txt", 'a')
+
             brams = 0
             sliceLUTs = 0
             processors = 0
             for combination in calc_cosh_cos_mass_combinations():
                 factor = calc_factor(combination)
                 sliceLUTs += self.cosh_deta_cos_dphi.sliceLUTs * factor
+                print("COSH_COS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
                 sliceLUTs += self.mass_calc.sliceLUTs * factor
                 processors += self.mass_calc.processors * factor
+                print("MASS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+
             return Payload(brams, sliceLUTs, processors)
+
+        def massdr_combinations() -> dict:
+            """Object combinations for instances of "cosh_deta_cos_dphi" calculations."""
+            combinations = {}
+            for algorithm in self.algorithms:
+                for condition in algorithm.conditions:
+                    if condition.type in massdr_cond:
+                        a = condition.objects[0]
+                        b = condition.objects[1]
+                        key = (a.type, b.type, a.bx_offset, b.bx_offset) # create custom hash
+                        combinations[key] = (a, b)
+            return combinations
+
+        def calc_massdr_payload() -> Payload:
+            """Payload for instances of "cosh_deta_cos_dphi" calculations."""
+            f_resources = open("resources.txt", 'a')
+
+            brams = 0
+            sliceLUTs = 0
+            processors = 0
+            for combination in massdr_combinations():
+                factor = calc_factor(combination)
+                sliceLUTs += self.cosh_deta_cos_dphi.sliceLUTs * factor
+                print("COSH_COS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+                sliceLUTs += self.mass_calc.sliceLUTs * factor
+                processors += self.mass_calc.processors * factor
+                print("MASS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+                sliceLUTs += self.massdr_calc.sliceLUTs * factor
+                processors += self.massdr_calc.processors * factor
+                brams += self.massdr_calc.brams * factor
+                print("MASS/DR =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
+
+            return Payload(brams, sliceLUTs, processors)
+
+            f_resources.close()
 
         # payload for FDL algo slices
         payload += calc_fdl_payload()
@@ -930,11 +1011,16 @@ class Module(object):
         # payload for instances of "cosh_deta_cos_dphi" calculations
         payload += calc_cosh_cos_mass_payload()
 
+        # payload for instances of "mass over dr" calculations
+        payload += calc_massdr_payload()
+
 # =================================================================================
 
         payloadMap = {}
         for algorithm in self.algorithms:
+            #print("algorithm ======>", algorithm)
             for condition in algorithm.conditions:
+                #print("condition ======>", condition)
                 payloadMap[condition.name] = condition.payload
 
         for name, payload_ in payloadMap.items():
@@ -1433,6 +1519,8 @@ def main():
     logging.info("done.")
 
     return 0
+
+f_resources.close()
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -153,7 +153,7 @@
         },
         "massdr_calc": {
             "processors": 3,
-            "brams": 18,
+            "brams": 10,
             "sliceLUTs": 143
         },
         "object_cuts": {

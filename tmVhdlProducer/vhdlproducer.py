@@ -231,7 +231,7 @@ def gtlLutsGenerator(self, scales, directory):
         phi_bits = scales[phi_scale].getNbits()
         phi_step = scales[phi_scale].getStep()
         phi_bins = int(scales[phi_scale].getMaximum()/scales[phi_scale].getStep())
-        print(obj_type, phi_bins)
+        #print(obj_type, phi_bins)
         tbpt_prec = scales['PRECISION-'+obj_type+'-'+obj_type+'-TwoBodyPtMath'].getNbits()
 
         lut_size = 2**phi_bits

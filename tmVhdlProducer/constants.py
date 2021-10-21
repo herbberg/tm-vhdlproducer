@@ -16,8 +16,9 @@ corr_types = ["EG-EG", "EG-MU", "MU-MU"]
 corr_luts = ["deta", "dphi", "cosh_deta", "cos_dphi"]
 pt_prec = 1 # no definition in pt scales!
 pt_scales = ['EG-ET', 'JET-ET', 'ETM-ET', 'MU-ET', 'MU-UPT']
-lut_dir = "vhdl_gtl_luts"
+lut_dir = "vhdl_gtl_pkgs"
 templ_luts = 'gtl_luts.vhd'
+templ_gtl_pkg = 'gtl_pkg.vhd'
 phi_scales = ['EG-PHI', 'MU-PHI']
 sin_cos_phi_luts = ["sin_phi", "cos_phi"]
 
