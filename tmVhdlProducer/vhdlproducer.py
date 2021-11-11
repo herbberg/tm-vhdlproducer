@@ -14,7 +14,8 @@ from jinja2 import StrictUndefined
 import tmEventSetup
 import tmTable
 
-from .constants import corr_types, corr_luts, pt_prec, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
+#from .constants import corr_types, corr_luts, pt_prec, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
+from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
 
 from .vhdlhelper import MenuHelper
 from .vhdlhelper import vhdl_bool
@@ -97,13 +98,13 @@ def round_halfway(value: float) -> float:
     """Return nearest integral value, with halfway cases rounded away from zero."""
     return math.copysign(math.floor(0.5 + abs(value)), value)
 
-def ptLutsCalc(lut_len, bins, step, prec, pt_bin_min, pt_bin_max):
+def ptLutsCalc(lut_len, bins, prec, pt_bin_min, pt_bin_max):
     lut = [0 for x in range(lut_len)]
     lut_val = [0 for x in range(lut_len)]
 
     # pt luts
     for i in range(0,lut_len):
-        lut[i] = int(round_halfway(((pt_bin_max[i] - pt_bin_min[i])/2+pt_bin_min[i])*10**prec))
+        lut[i] = int(round_halfway((pt_bin_min[i]+(pt_bin_max[i]-pt_bin_min[i])/2)*10**prec))
         if i < bins:
             lut_val[i] = lut[i]
         else:
@@ -161,9 +162,13 @@ def gtlLutsGenerator(self, scales, directory):
     pt_param = {}
     for pt_scale in pt_scales:
 
+        obj_type_2 = pt_scale.split('-')[0]
         pt_bits = scales[pt_scale].getNbits()
         pt_max_value = scales[pt_scale].getMaximum()
-        pt_step = scales[pt_scale].getStep()
+        #pt_step = scales[pt_scale].getStep()
+
+        obj_type_1 = 'EG'
+        mass_pt_prec = scales['PRECISION-'+obj_type_1+'-'+obj_type_2+'-MassPt'].getNbits()
 
         lut_size = 2**pt_bits
 
@@ -176,7 +181,7 @@ def gtlLutsGenerator(self, scales, directory):
 
         nr_bins = pt_bin.hw_index+1
 
-        lut_val = ptLutsCalc(lut_size, nr_bins, pt_step, pt_prec, pt_bin_min, pt_bin_max)
+        lut_val = ptLutsCalc(lut_size, nr_bins, mass_pt_prec, pt_bin_min, pt_bin_max)
 
         pt_param[pt_scale]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
 
