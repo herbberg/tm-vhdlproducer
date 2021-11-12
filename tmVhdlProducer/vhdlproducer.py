@@ -14,7 +14,6 @@ from jinja2 import StrictUndefined
 import tmEventSetup
 import tmTable
 
-#from .constants import corr_types, corr_luts, pt_prec, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
 from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
 
 from .vhdlhelper import MenuHelper
@@ -159,16 +158,23 @@ def phiLutsCalc(lut_type, lut_len, bins, step, prec):
 
 def gtlLutsGenerator(self, scales, directory):
     # calculate LUT values for pt (definition of "pt_scales" in constants.py)
+    """
+    VHDL constant names of pt and unconstrained pt LUTs:
+        EG_PT_LUT (used also for TAU)
+        JET_PT_LUT
+        ETM_PT_LUT (used also for HTM and ETMHF)
+        MU_PT_LUT
+        MU_UPT_LUT
+    """
     pt_param = {}
     for pt_scale in pt_scales:
 
-        obj_type_2 = pt_scale.split('-')[0]
         pt_bits = scales[pt_scale].getNbits()
         pt_max_value = scales[pt_scale].getMaximum()
-        #pt_step = scales[pt_scale].getStep()
 
-        obj_type_1 = 'EG'
-        mass_pt_prec = scales['PRECISION-'+obj_type_1+'-'+obj_type_2+'-MassPt'].getNbits()
+        obj_type_2 = pt_scale.split('-')[0]
+        # "MassPt" precision for pt LUTs (used in mass and two-body pt calculations)
+        mass_pt_prec = scales['PRECISION-EG-'+obj_type_2+'-MassPt'].getNbits()
 
         lut_size = 2**pt_bits
 
@@ -186,6 +192,21 @@ def gtlLutsGenerator(self, scales, directory):
         pt_param[pt_scale]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
 
     # calculate LUT values for deta and dphi (definition of "corr_types" in constants.py)
+    """
+    VHDL constant names of deta and dphi LUTs:
+        CALO_CALO_DIFF_ETA_LUT
+        CALO_MU_DIFF_ETA_LUT
+        MU_MU_DIFF_ETA_LUT
+        CALO_CALO_COSH_DETA_LUT
+        CALO_MUON_COSH_DETA_LUT
+        MU_MU_COSH_DETA_LUT
+        CALO_CALO_DIFF_PHI_LUT
+        CALO_MU_DIFF_PHI_LUT
+        MU_MU_DIFF_PHI_LUT
+        CALO_CALO_COS_DPHI_LUT
+        CALO_MUON_COS_DPHI_LUT
+        MU_MU_COS_DPHI_LUT
+    """
     corr_param = {}
     for corr_type in corr_types:
 
@@ -227,6 +248,11 @@ def gtlLutsGenerator(self, scales, directory):
             corr_param[corr_type][corr_lut] = param
 
     # calculate LUT values for sine and cosine phi (definition of "phi_scales" in constants.py)
+    """
+    VHDL constant names of deta and dphi LUTs:
+        CALO_COS_PHI_LUT
+        MUON_COS_PHI_LUT
+    """
     sin_cos_phi_param = {}
     for phi_scale in phi_scales:
 
