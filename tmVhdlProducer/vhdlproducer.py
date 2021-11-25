@@ -14,7 +14,7 @@ from jinja2 import StrictUndefined
 import tmEventSetup
 import tmTable
 
-from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts, phi_scales, sin_cos_phi_luts
+from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts, templ_gtl_pkg, phi_scales, sin_cos_phi_luts
 
 from .vhdlhelper import MenuHelper
 from .vhdlhelper import vhdl_bool
@@ -292,6 +292,83 @@ def gtlLutsGenerator(self, scales, directory):
     with open(filename, 'w') as fp:
         fp.write(content_luts)
 
+def gtlPkgGenerator(self, scales, directory):
+    # calculate constant values for gtl_pkg.vhd (definition of "pt_scales" in constants.py)
+    gtl_pkg_param = {}
+    #mu_pt_bits = scales['MU-ET'].getNbits()
+    #mu_upt_bits = scales['MU-UPT'].getNbits()
+    #mu_eta_bits = scales['MU-ETA'].getNbits()
+    #mu_phi_bits = scales['MU-PHI'].getNbits()
+    #eg_et_bits = scales['EG-ET'].getNbits()
+    #eg_eta_bits = scales['EG-ETA'].getNbits()
+    #eg_phi_bits = scales['EG-PHI'].getNbits()
+    #jet_et_bits = scales['JET-ET'].getNbits()
+    #jet_eta_bits = scales['JET-ETA'].getNbits()
+    #jet_phi_bits = scales['JET-PHI'].getNbits()
+    #tau_et_bits = scales['TAU-ET'].getNbits()
+    #tau_eta_bits = scales['TAU-ETA'].getNbits()
+    #tau_phi_bits = scales['TAU-PHI'].getNbits()
+    #ett_et_bits = scales['ETT-ET'].getNbits()
+    #etm_et_bits = scales['ETM-ET'].getNbits()
+    #htt_et_bits = scales['HTT-ET'].getNbits()
+    #htm_et_bits = scales['HTM-ET'].getNbits()
+    #etmhf_et_bits = scales['ETMHF-ET'].getNbits()
+    ##htmhf_et_bits = scales['HTMHF-ET'].getNbits()
+    #ettem_et_bits = scales['ETTEM-ET'].getNbits()
+    #etm_phi_bits = scales['ETM-PHI'].getNbits()
+    #htm_phi_bits = scales['HTM-PHI'].getNbits()
+    #etmhf_phi_bits = scales['ETMHF-PHI'].getNbits()
+    ##htmhf_phi_bits = scales['HTMHF-PHI'].getNbits()
+
+    gtl_pkg_param = {
+        'mu_pt_bits': scales['MU-ET'].getNbits(),
+        'mu_upt_bits': scales['MU-UPT'].getNbits(),
+        'mu_eta_bits': scales['MU-UPT'].getNbits(),
+        'mu_phi_bits': scales['MU-PHI'].getNbits(),
+        'eg_et_bits': scales['EG-ET'].getNbits(),
+        'eg_eta_bits': scales['EG-ETA'].getNbits(),
+        'eg_phi_bits': scales['EG-PHI'].getNbits(),
+        'jet_et_bits': scales['JET-ET'].getNbits(),
+        'jet_eta_bits': scales['JET-ETA'].getNbits(),
+        'jet_phi_bits': scales['JET-PHI'].getNbits(),
+        'tau_et_bits': scales['TAU-ET'].getNbits(),
+        'tau_eta_bits': scales['TAU-ETA'].getNbits(),
+        'tau_phi_bits': scales['TAU-PHI'].getNbits(),
+        'ett_et_bits': scales['ETT-ET'].getNbits(),
+        'etm_et_bits': scales['ETM-ET'].getNbits(),
+        'htt_et_bits': scales['HTT-ET'].getNbits(),
+        'htm_et_bits': scales['HTM-ET'].getNbits(),
+        'etmhf_et_bits': scales['ETMHF-ET'].getNbits(),
+        #'htmhf_et_bits': scales['HTMHF-ET'].getNbits(), # actually not in scales
+        'ettem_et_bits': scales['ETTEM-ET'].getNbits(),
+        'etm_phi_bits': scales['ETM-PHI'].getNbits(),
+        'htm_phi_bits': scales['HTM-PHI'].getNbits(),
+        'etmhf_phi_bits': scales['ETMHF-PHI'].getNbits(),
+        #'htmhf_phi_bits': scales['HTMHF-PHI'].getNbits(), # actually not in scales
+        'phi_min': scales['EG-PHI'].getMinimum(),
+        'phi_max': scales['EG-PHI'].getMaximum(),
+        'eta_min': scales['EG-ETA'].getMinimum(),
+        'eta_max': scales['EG-ETA'].getMaximum(),
+        'delta_prec': scales['PRECISION-EG-EG-Delta'].getNbits(),
+        'calo_pt_prec': scales['PRECISION-EG-EG-MassPt'].getNbits(),
+        'muon_pt_prec': scales['PRECISION-MU-MU-MassPt'].getNbits(),
+        'calo_calo_cosh_cos_prec': scales['PRECISION-EG-EG-Math'].getNbits(),
+        'calo_muon_cosh_cos_prec': scales['PRECISION-EG-MU-Math'].getNbits(),
+        'muon_muon_cosh_cos_prec': scales['PRECISION-MU-MU-Math'].getNbits(),
+        'calo_sin_cos_prec': scales['PRECISION-EG-EG-TwoBodyPtMath'].getNbits(),
+        'muon_sin_cos_prec': scales['PRECISION-MU-MU-TwoBodyPtMath'].getNbits(),
+        'calo_calo_cosh_cos_vec_width': 10597282-(-1000),
+        'muon_muon_cosh_cos_vec_width': 667303-(-10000),
+        'calo_muon_cosh_cos_vec_width': 10597282-(-1000),
+        'calo_sin_cos_vec_width': 1000,
+        'muon_sin_cos_vec_width': 10000,
+    }
+
+    content_gtl_pkg = self.engine.render(templ_gtl_pkg, gtl_pkg_param)
+    filename = os.path.join(directory, lut_dir, templ_gtl_pkg)
+    with open(filename, 'w') as fp:
+        fp.write(content_gtl_pkg)
+
 # -----------------------------------------------------------------------------
 #  Template engines with custom loader environment.
 # -----------------------------------------------------------------------------
@@ -349,6 +426,7 @@ class VhdlProducer(object):
         # generation of LUTs in gtl_luts.vhd (for gtl_luts_pkg.vhd)
         scales = collection.eventSetup.getScaleMapPtr()
         gtlLutsGenerator(self, scales, directory)
+        gtlPkgGenerator(self, scales, directory)
 
         helper = MenuHelper(collection)
         logging.info("writing %s algorithms to %s module(s)", len(helper.algorithms), len(helper.modules))
