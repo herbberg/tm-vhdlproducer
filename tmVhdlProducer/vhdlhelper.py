@@ -1205,6 +1205,7 @@ class ObjectHelper(VhdlHelper):
         count               [CountCutHelper]
         upt                 [UptCutHelper]
         impactParameter     [ImpactParameterCutHelper]
+        displaced           [DisplacedCutHelper]
         etaNrCuts           [int]
         etaLowerLimit       [list]
         etaLowerLimit       [list]
@@ -1236,6 +1237,7 @@ class ObjectHelper(VhdlHelper):
         self.count = CountCutHelper()
         self.upt = UptCutHelper()
         self.impactParameter = ImpactParameterCutHelper(0xf)
+        self.displaced = DisplacedCutHelper()
         # spatial cuts
         self.etaNrCuts = 0
         self.etaLowerLimit = [0, 0, 0, 0, 0]
@@ -1281,6 +1283,8 @@ class ObjectHelper(VhdlHelper):
                 self.upt.update(cut_handle)
             elif cut_handle.cut_type == tmEventSetup.ImpactParameter:
                 self.impactParameter.update(cut_handle)
+            elif cut_handle.cut_type == tmEventSetup.Displaced:
+                self.displaced.update(cut_handle)
             if cut_handle.cut_type == tmEventSetup.Slice:
                 self.slice.update(cut_handle)
         # setup eta windows
@@ -1348,7 +1352,7 @@ class CutHelper(VhdlHelper):
 
     def __bool__(self):
         return self.enabled
-
+     
 class ThresholdCutHelper(CutHelper):
 
     def __init__(self, threshold=0):
@@ -1399,6 +1403,18 @@ class ImpactParameterCutHelper(LookupTableCutHelper):
     def update(self, cut_handle):
         """Updates LUT value and enables cut."""
         self.value = int(cut_handle.data)
+        self.enabled = True
+
+class BooleanCutHelper(CutHelper):
+
+    def __init__(self, state=False):
+        super().__init__()
+        self.state = state
+
+class DisplacedCutHelper(BooleanCutHelper):
+
+    def update(self, cut_handle):
+        self.state = bool(int(cut_handle.data))
         self.enabled = True
 
 class ChargeCutHelper(CutHelper):
