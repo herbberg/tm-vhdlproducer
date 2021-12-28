@@ -14,7 +14,7 @@ from jinja2 import StrictUndefined
 import tmEventSetup
 import tmTable
 
-from .constants import corr_types, corr_luts, pt_scales, lut_dir, templ_luts, templ_gtl_pkg, phi_scales, sin_cos_phi_luts
+from .constants import gtl_const
 
 from .vhdlhelper import MenuHelper
 from .vhdlhelper import vhdl_bool
@@ -115,7 +115,7 @@ def deltaLutsCalc(lut_type, lut_len, bins, step, prec):
     lut_val = [0 for x in range(lut_len)]
 
     # delta eta, cosh deta, delta phi and cos dphi luts
-    if lut_type in corr_luts:
+    if lut_type in gtl_const['corr_luts']:
         for i in range(0,lut_len):
             if lut_type == "deta" or lut_type == "dphi":
                 lut[i] = int(round_halfway(step*i*10**prec))
@@ -136,7 +136,7 @@ def phiLutsCalc(lut_type, lut_len, bins, step, prec):
     lut_val = [0 for x in range(lut_len)]
 
     # sin and cos phi luts (value based on mid of bin)
-    if lut_type in sin_cos_phi_luts:
+    if lut_type in gtl_const['sin_cos_phi_luts']:
         for i in range(0,lut_len):
             if lut_type == "sin_phi":
                 lut[i] = int(round_halfway(math.sin(step*i+(step/2))*10**prec))
@@ -167,7 +167,7 @@ def gtlLutsGenerator(self, scales, directory):
         MU_UPT_LUT
     """
     pt_param = {}
-    for pt_scale in pt_scales:
+    for pt_scale in gtl_const['pt_scales']:
 
         pt_bits = scales[pt_scale].getNbits()
         pt_max_value = scales[pt_scale].getMaximum()
@@ -208,7 +208,7 @@ def gtlLutsGenerator(self, scales, directory):
         MU_MU_COS_DPHI_LUT
     """
     corr_param = {}
-    for corr_type in corr_types:
+    for corr_type in gtl_const['corr_types']:
 
         corr_param[corr_type] = {}
 
@@ -238,7 +238,7 @@ def gtlLutsGenerator(self, scales, directory):
         step = {"deta": eta_step, "dphi": phi_step, "cosh_deta": eta_step, "cos_dphi": phi_step}
         prec = {"deta": delta_prec, "dphi": delta_prec, "cosh_deta": math_prec, "cos_dphi": math_prec}
 
-        for corr_lut in corr_luts:
+        for corr_lut in gtl_const['corr_luts']:
 
             corr_param[corr_type][corr_lut] = {}
 
@@ -254,7 +254,7 @@ def gtlLutsGenerator(self, scales, directory):
         MUON_COS_PHI_LUT
     """
     sin_cos_phi_param = {}
-    for phi_scale in phi_scales:
+    for phi_scale in gtl_const['phi_scales']:
 
         obj_type = phi_scale.split('-')[0]
         sin_cos_phi_param[obj_type] = {}
@@ -262,22 +262,18 @@ def gtlLutsGenerator(self, scales, directory):
         phi_bits = scales[phi_scale].getNbits()
         phi_step = scales[phi_scale].getStep()
         phi_bins = int(scales[phi_scale].getMaximum()/scales[phi_scale].getStep())
-        #print(obj_type, phi_bins)
         tbpt_prec = scales['PRECISION-'+obj_type+'-'+obj_type+'-TwoBodyPtMath'].getNbits()
 
         lut_size = 2**phi_bits
 
-        for lut_type in sin_cos_phi_luts:
-
+        for lut_type in gtl_const['sin_cos_phi_luts']:
             sin_cos_phi_param[obj_type][lut_type] = {}
-
             lut_val = phiLutsCalc(lut_type, lut_size, phi_bins, phi_step, tbpt_prec)
-
             sin_cos_phi_param[obj_type][lut_type]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
 
 # render template
-    os.path.join(directory, lut_dir)
-    lut_path = os.path.join(directory, lut_dir)
+    os.path.join(directory, gtl_const['lut_dir'])
+    lut_path = os.path.join(directory, gtl_const['lut_dir'])
     if not os.path.exists(lut_path):
         makedirs(lut_path)
 
@@ -287,43 +283,52 @@ def gtlLutsGenerator(self, scales, directory):
         'sin_cos_phi_param': sin_cos_phi_param,
     }
 
-    content_luts = self.engine.render(templ_luts, gtl_luts_params)
-    filename = os.path.join(directory, lut_dir, templ_luts)
+    content_luts = self.engine.render(gtl_const['templ_luts'], gtl_luts_params)
+    filename = os.path.join(directory, gtl_const['lut_dir'], gtl_const['templ_luts'])
     with open(filename, 'w') as fp:
         fp.write(content_luts)
 
 def gtlPkgGenerator(self, scales, directory):
     # calculate constant values for gtl_pkg.vhd (definition of "pt_scales" in constants.py)
     gtl_pkg_param = {}
-    #mu_pt_bits = scales['MU-ET'].getNbits()
-    #mu_upt_bits = scales['MU-UPT'].getNbits()
-    #mu_eta_bits = scales['MU-ETA'].getNbits()
-    #mu_phi_bits = scales['MU-PHI'].getNbits()
-    #eg_et_bits = scales['EG-ET'].getNbits()
-    #eg_eta_bits = scales['EG-ETA'].getNbits()
-    #eg_phi_bits = scales['EG-PHI'].getNbits()
-    #jet_et_bits = scales['JET-ET'].getNbits()
-    #jet_eta_bits = scales['JET-ETA'].getNbits()
-    #jet_phi_bits = scales['JET-PHI'].getNbits()
-    #tau_et_bits = scales['TAU-ET'].getNbits()
-    #tau_eta_bits = scales['TAU-ETA'].getNbits()
-    #tau_phi_bits = scales['TAU-PHI'].getNbits()
-    #ett_et_bits = scales['ETT-ET'].getNbits()
-    #etm_et_bits = scales['ETM-ET'].getNbits()
-    #htt_et_bits = scales['HTT-ET'].getNbits()
-    #htm_et_bits = scales['HTM-ET'].getNbits()
-    #etmhf_et_bits = scales['ETMHF-ET'].getNbits()
-    ##htmhf_et_bits = scales['HTMHF-ET'].getNbits()
-    #ettem_et_bits = scales['ETTEM-ET'].getNbits()
-    #etm_phi_bits = scales['ETM-PHI'].getNbits()
-    #htm_phi_bits = scales['HTM-PHI'].getNbits()
-    #etmhf_phi_bits = scales['ETMHF-PHI'].getNbits()
-    ##htmhf_phi_bits = scales['HTMHF-PHI'].getNbits()
+
+    calo_eta_max_value = scales['EG-ETA'].getMaximum()
+    calo_eta_min_value = scales['EG-ETA'].getMinimum()
+    calo_eta_step = scales['EG-ETA'].getStep()
+    muon_eta_max_value = scales['MU-ETA'].getMaximum()
+    muon_eta_min_value = scales['MU-ETA'].getMinimum()
+    muon_eta_step = scales['MU-ETA'].getStep()
+
+    calo_calo_eta_bins = int((abs(calo_eta_min_value)+calo_eta_max_value)/calo_eta_step)
+    calo_calo_cosh_deta = math.cosh(calo_calo_eta_bins * calo_eta_step)
+    calo_calo_cosh_deta_int = int(round_halfway(calo_calo_cosh_deta * 10**scales['PRECISION-EG-EG-Math'].getNbits()))
+
+    muon_muon_eta_bins = int((abs(muon_eta_min_value)+muon_eta_max_value)/muon_eta_step)
+    muon_muon_cosh_deta = math.cosh(muon_muon_eta_bins * muon_eta_step)
+    muon_muon_cosh_deta_int = int(round_halfway(muon_muon_cosh_deta * 10**scales['PRECISION-MU-MU-Math'].getNbits()))
+
+    # Delta eta range for calo used in LUT. Delta eta range of calo_eta_max_value and muon_eta_min_value (or vice versa) would be enough.
+    calo_muon_eta_bins = int((abs(calo_eta_min_value)+calo_eta_max_value)/muon_eta_step)
+    calo_muon_cosh_deta = math.cosh(calo_muon_eta_bins * muon_eta_step)
+    calo_muon_cosh_deta_int = int(round_halfway(calo_muon_cosh_deta * 10**scales['PRECISION-EG-MU-Math'].getNbits()))
+
+    cos_dphi_min = -1
+
+    calo_calo_cos_dphi_int = cos_dphi_min*10**scales['PRECISION-EG-EG-Math'].getNbits()
+    muon_muon_cos_dphi_int = cos_dphi_min*10**scales['PRECISION-MU-MU-Math'].getNbits()
+    calo_muon_cos_dphi_int = cos_dphi_min*10**scales['PRECISION-EG-MU-Math'].getNbits()
 
     gtl_pkg_param = {
+        'phi_min': scales['EG-PHI'].getMinimum(),
+        'phi_max': scales['EG-PHI'].getMaximum(),
+        'eta_min': scales['EG-ETA'].getMinimum(),
+        'eta_max': scales['EG-ETA'].getMaximum(),
+        'calo_phi_bins': gtl_const['CALO_PHI_BINS'],
+        'muon_phi_bins': gtl_const['MUON_PHI_BINS'],
         'mu_pt_bits': scales['MU-ET'].getNbits(),
         'mu_upt_bits': scales['MU-UPT'].getNbits(),
-        'mu_eta_bits': scales['MU-UPT'].getNbits(),
+        'mu_eta_bits': scales['MU-ETA'].getNbits(),
+        'mu_eta_step': muon_eta_step,
         'mu_phi_bits': scales['MU-PHI'].getNbits(),
         'eg_et_bits': scales['EG-ET'].getNbits(),
         'eg_eta_bits': scales['EG-ETA'].getNbits(),
@@ -340,15 +345,24 @@ def gtlPkgGenerator(self, scales, directory):
         'htm_et_bits': scales['HTM-ET'].getNbits(),
         'etmhf_et_bits': scales['ETMHF-ET'].getNbits(),
         #'htmhf_et_bits': scales['HTMHF-ET'].getNbits(), # actually not in scales
+        'ettem_in_low': gtl_const['ETTEM_IN_ETT_LOW'],
         'ettem_et_bits': scales['ETTEM-ET'].getNbits(),
         'etm_phi_bits': scales['ETM-PHI'].getNbits(),
         'htm_phi_bits': scales['HTM-PHI'].getNbits(),
         'etmhf_phi_bits': scales['ETMHF-PHI'].getNbits(),
         #'htmhf_phi_bits': scales['HTMHF-PHI'].getNbits(), # actually not in scales
-        'phi_min': scales['EG-PHI'].getMinimum(),
-        'phi_max': scales['EG-PHI'].getMaximum(),
-        'eta_min': scales['EG-ETA'].getMinimum(),
-        'eta_max': scales['EG-ETA'].getMaximum(),
+        'asym_in_low': gtl_const['ASYMX_IN_Y_LOW'],
+        'asymet_bits': scales['ASYMET-COUNT'].getNbits(),
+        'asymht_bits': scales['ASYMHT-COUNT'].getNbits(),
+        'asymethf_bits': scales['ASYMETHF-COUNT'].getNbits(),
+        'asymhthf_bits': scales['ASYMHTHF-COUNT'].getNbits(),
+        'towercount_in_low': gtl_const['TOWERCOUNT_IN_HTT_LOW'],
+        'towercount_bits': scales['TOWERCOUNT-COUNT'].getNbits(),
+        'mb_in_low': gtl_const['MBX_IN_Y_LOW'],
+        'mbt0hfm_bits': scales['MBT0HFM-COUNT'].getNbits(),
+        'mbt0hfp_bits': scales['MBT0HFP-COUNT'].getNbits(),
+        'mbt1hfm_bits': scales['MBT1HFM-COUNT'].getNbits(),
+        'mbt1hfp_bits': scales['MBT1HFP-COUNT'].getNbits(),
         'delta_prec': scales['PRECISION-EG-EG-Delta'].getNbits(),
         'calo_pt_prec': scales['PRECISION-EG-EG-MassPt'].getNbits(),
         'muon_pt_prec': scales['PRECISION-MU-MU-MassPt'].getNbits(),
@@ -357,15 +371,15 @@ def gtlPkgGenerator(self, scales, directory):
         'muon_muon_cosh_cos_prec': scales['PRECISION-MU-MU-Math'].getNbits(),
         'calo_sin_cos_prec': scales['PRECISION-EG-EG-TwoBodyPtMath'].getNbits(),
         'muon_sin_cos_prec': scales['PRECISION-MU-MU-TwoBodyPtMath'].getNbits(),
-        'calo_calo_cosh_cos_vec_width': 10597282-(-1000),
-        'muon_muon_cosh_cos_vec_width': 667303-(-10000),
-        'calo_muon_cosh_cos_vec_width': 10597282-(-1000),
-        'calo_sin_cos_vec_width': 1000,
-        'muon_sin_cos_vec_width': 10000,
+        'calo_calo_cosh_cos_vec_width': calo_calo_cosh_deta_int-(calo_calo_cos_dphi_int),
+        'muon_muon_cosh_cos_vec_width': muon_muon_cosh_deta_int-(muon_muon_cos_dphi_int),
+        'calo_muon_cosh_cos_vec_width': calo_muon_cosh_deta_int-(calo_muon_cos_dphi_int),
+        'calo_sin_cos_vec_width': 10**scales['PRECISION-EG-EG-TwoBodyPtMath'].getNbits(),
+        'muon_sin_cos_vec_width': 10**scales['PRECISION-MU-MU-TwoBodyPtMath'].getNbits(),
     }
 
-    content_gtl_pkg = self.engine.render(templ_gtl_pkg, gtl_pkg_param)
-    filename = os.path.join(directory, lut_dir, templ_gtl_pkg)
+    content_gtl_pkg = self.engine.render(gtl_const['templ_gtl_pkg'], gtl_pkg_param)
+    filename = os.path.join(directory, gtl_const['lut_dir'], gtl_const['templ_gtl_pkg'])
     with open(filename, 'w') as fp:
         fp.write(content_gtl_pkg)
 
@@ -441,7 +455,6 @@ class VhdlProducer(object):
                     'module': module,
                 }
                 content = self.engine.render(template, params)
-                #print("content", content)
                 module_id = f"module_{module.id:d}"
                 filename = os.path.join(directories[module_id], template)
                 with open(filename, 'w') as fp:
