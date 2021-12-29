@@ -31,7 +31,8 @@ from collections import namedtuple
 import tmEventSetup
 import tmGrammar
 
-from .constants import BRAMS_TOTAL, SLICELUTS_TOTAL, PROCESSORS_TOTAL, NR_CALOS, NR_MUONS
+#from .constants import BRAMS_TOTAL, SLICELUTS_TOTAL, PROCESSORS_TOTAL, NR_CALOS, NR_MUONS
+from .constants import virtex_resources, nr_obj
 
 from .handles import Payload
 from .handles import ObjectHandle
@@ -861,18 +862,18 @@ class Module(object):
             left, right = combination[0], combination[1]
             if left == right:
                 if left in muon_type:
-                    return NR_MUONS * (NR_MUONS - 1) / 2
+                    return nr_obj['NR_MUONS'] * (nr_obj['NR_MUONS'] - 1) / 2
                 else:
-                    return NR_CALOS * (NR_CALOS - 1) / 2
+                    return nr_obj['NR_CALOS'] * (nr_obj['NR_CALOS'] - 1) / 2
             else:
                 if left in calo_type and right in calo_type:
-                    return NR_CALOS * NR_CALOS
+                    return nr_obj['NR_CALOS'] * nr_obj['NR_CALOS']
                 elif left in calo_type and right in muon_type:
-                    return NR_CALOS * NR_MUONS
+                    return nr_obj['NR_CALOS'] * nr_obj['NR_MUONS']
                 elif left in calo_type and right in esums_type:
-                    return NR_CALOS
+                    return nr_obj['NR_CALOS']
                 elif left in muon_type and right in esums_type:
-                    return NR_MUONS
+                    return nr_obj['NR_MUONS']
                 else:
                     message = f"Invalid correlation combination: {left}, {right}"
                     raise RuntimeError(message)
@@ -1311,9 +1312,9 @@ def parse_args():
 def list_resources(tray):
     logging.info(":: listing resources...")
     def section(name, instance):
-        bramsPercent = instance.brams / BRAMS_TOTAL * 100
-        sliceLUTsPercent = instance.sliceLUTs / SLICELUTS_TOTAL * 100
-        processorsPercent = instance.processors / PROCESSORS_TOTAL * 100
+        bramsPercent = instance.brams / virtex_resources['BRAMS_TOTAL'] * 100
+        sliceLUTsPercent = instance.sliceLUTs / virtex_resources['SLICELUTS_TOTAL'] * 100
+        processorsPercent = instance.processors / virtex_resources['PROCESSORS_TOTAL'] * 100
         return f" * {name}: brams={bramsPercent:.2f}%, sliceLUTs={sliceLUTsPercent:.2f}%, processors={processorsPercent:.2f}%"
     logging.info("thresholds:")
     logging.info(section("floor", tray.floor()))
@@ -1338,9 +1339,9 @@ def list_algorithms(collection):
     logging.info("| Index | BRAMs   | SliceLUTs | DSPs    | Name                                          |")
     logging.info("|-------|---------|-----------|---------|-----------------------------------------------|")
     for algorithm in collection.algorithm_handles:
-        brams = algorithm.payload.brams / BRAMS_TOTAL  * 100.
-        sliceLUTs = algorithm.payload.sliceLUTs / SLICELUTS_TOTAL * 100.
-        processors = algorithm.payload.processors / PROCESSORS_TOTAL * 100.
+        brams = algorithm.payload.brams / virtex_resources['BRAMS_TOTAL']  * 100.
+        sliceLUTs = algorithm.payload.sliceLUTs / virtex_resources['SLICELUTS_TOTAL'] * 100.
+        processors = algorithm.payload.processors / virtex_resources['PROCESSORS_TOTAL'] * 100.
         name = short_name(algorithm.name, 41)
         logging.info(f"| {algorithm.index:>5d} | {brams:>6.3f}% | {sliceLUTs:>8.3f}% | {processors:>6.3f}% | {name:<45} |")
     logging.info("|-------|---------|-----------|---------|-----------------------------------------------|")
@@ -1404,9 +1405,9 @@ def list_distribution(collection):
         #brams_val = module.payload.brams
         #sliceLUTs_val = module.payload.sliceLUTs
         #processors_val = module.payload.processors
-        #brams = module.payload.brams / BRAMS_TOTAL * 100.
-        #sliceLUTs = module.payload.sliceLUTs / SLICELUTS_TOTAL * 100.
-        #processors = module.payload.processors / PROCESSORS_TOTAL * 100.
+        #brams = module.payload.brams / virtex_resources['BRAMS_TOTAL'] * 100.
+        #sliceLUTs = module.payload.sliceLUTs / virtex_resources['SLICELUTS_TOTAL'] * 100.
+        #processors = module.payload.processors / virtex_resources['PROCESSORS_TOTAL'] * 100.
         #logging.info(f"| {module.id:>2} | {algorithms:>10} | {conditions:>10} | {proportion:>4.2f} | " \
                      #f"{brams_val:>5.0f} | {brams:>5.2f} | {sliceLUTs_val:>6.0f} | {sliceLUTs:>5.2f} | {processors_val:>5.0f} | {processors:>5.2f} |")
     #logging.info("|----|------------|------------|------|-------|-------|--------|-------|-------|-------|")
@@ -1431,9 +1432,9 @@ def list_summary(collection):
         brams_val = module.payload.brams
         sliceLUTs_val = module.payload.sliceLUTs
         processors_val = module.payload.processors
-        brams = module.payload.brams / BRAMS_TOTAL * 100.
-        sliceLUTs = module.payload.sliceLUTs / SLICELUTS_TOTAL * 100.
-        processors = module.payload.processors / PROCESSORS_TOTAL * 100.
+        brams = module.payload.brams / virtex_resources['BRAMS_TOTAL'] * 100.
+        sliceLUTs = module.payload.sliceLUTs / virtex_resources['SLICELUTS_TOTAL'] * 100.
+        processors = module.payload.processors / virtex_resources['PROCESSORS_TOTAL'] * 100.
         logging.info(f"| {module.id:>2} | {algorithms:>10} | {conditions:>10} | {proportion:>4.2f} | " \
                      f"{sliceLUTs_val:>6.0f} | {sliceLUTs:>5.2f} | {brams_val:>5.0f} | {brams:>5.2f} | {processors_val:>5.0f} | {processors:>5.2f} |")
     logging.info("|----|------------|------------|------|--------|-------|-------|-------|-------|-------|")

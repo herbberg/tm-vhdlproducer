@@ -13,7 +13,7 @@ import tmEventSetup
 import tmGrammar
 import os
 
-from .constants import BRAMS_TOTAL, SLICELUTS_TOTAL, PROCESSORS_TOTAL
+from .constants import virtex_resources
 
 #
 # Dictionaries
@@ -289,9 +289,9 @@ class Payload(object):
         return self._astuple() < payload._astuple()
 
     def __repr__(self):
-        bramsPercent = self.brams / BRAMS_TOTAL * 100
-        sliceLUTsPercent = self.sliceLUTs / SLICELUTS_TOTAL * 100
-        processorsPercent = self.processors / PROCESSORS_TOTAL * 100
+        bramsPercent = self.brams / virtex_resources['BRAMS_TOTAL'] * 100
+        sliceLUTsPercent = self.sliceLUTs / virtex_resources['SLICELUTS_TOTAL'] * 100
+        processorsPercent = self.processors / virtex_resources['PROCESSORS_TOTAL'] * 100
         return f"{self.__class__.__name__}(BRAMs={bramsPercent:.2f}%, sliceLUTs={sliceLUTsPercent:.2f}%, DSPs={processorsPercent:.2f}%)"
 
 #

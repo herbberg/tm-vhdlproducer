@@ -10,20 +10,20 @@ constant MUON_PHI_BINS : positive := {{muon_phi_bins}};
 -- MUON objects bits
 constant MUON_PHI_BITS : natural := {{mu_phi_bits}};
 constant MUON_PT_BITS : natural := {{mu_pt_bits}};
-constant MUON_QUAL_BITS : natural := 4;
+constant MUON_QUAL_BITS : natural := {{mu_qual_bits}};
 constant MUON_ETA_BITS : natural := {{mu_eta_bits}};
-constant MUON_ISO_BITS : natural := 2;
-constant MUON_CHARGE_BITS : natural := 2;
-constant MUON_IDX_BITS : natural := 7;
+constant MUON_ISO_BITS : natural := {{mu_iso_bits}};
+constant MUON_CHARGE_BITS : natural := {{mu_charge_bits}};
+constant MUON_IDX_BITS : natural := {{mu_idx_bits}};
 constant MUON_PHI_RAW_BITS : natural := {{mu_phi_bits}};
 constant MUON_UPT_BITS : natural := {{mu_upt_bits}};
-constant MUON_IP_BITS : natural := 2;
+constant MUON_IP_BITS : natural := {{mu_ip_bits}};
 
 -- EG objects bits
 constant EG_ET_BITS : natural := {{eg_et_bits}};
 constant EG_ETA_BITS : natural := {{eg_eta_bits}};
 constant EG_PHI_BITS : natural := {{eg_phi_bits}};
-constant EG_ISO_BITS : natural := 2;
+constant EG_ISO_BITS : natural := {{eg_iso_bits}};
 
 -- JET objects bits
 constant JET_ET_BITS : natural := {{jet_et_bits}};
@@ -34,7 +34,7 @@ constant JET_PHI_BITS : natural := {{jet_phi_bits}};
 constant TAU_ET_BITS : natural := {{tau_et_bits}};
 constant TAU_ETA_BITS : natural := {{tau_eta_bits}};
 constant TAU_PHI_BITS : natural := {{tau_phi_bits}};
-constant TAU_ISO_BITS : natural := 2;
+constant TAU_ISO_BITS : natural := {{tau_iso_bits}};
 
 -- ESUM objects bits
 constant ETT_ET_BITS : natural := {{ett_et_bits}};
@@ -51,6 +51,7 @@ constant ETMHF_PHI_BITS : natural := {{etmhf_phi_bits}};
 constant HTMHF_ET_BITS : natural := {{etmhf_et_bits}};
 constant HTMHF_PHI_BITS : natural := {{etmhf_phi_bits}};
 
+-- ASYM objects bits
 constant ASYMET_IN_ETM_LOW : natural := {{asym_in_low}};
 constant ASYMET_IN_ETM_HIGH : natural := {{asym_in_low+asymet_bits-1}};
 constant ASYMHT_IN_HTM_LOW : natural := {{asym_in_low}};
@@ -60,32 +61,28 @@ constant ASYMETHF_IN_ETMHF_HIGH : natural := {{asym_in_low+asymethf_bits-1}};
 constant ASYMHTHF_IN_HTMHF_LOW : natural := {{asym_in_low}};
 constant ASYMHTHF_IN_HTMHF_HIGH : natural := {{asym_in_low+asymhthf_bits-1}};
 
-constant ASYMET_LOW : natural := 0;
+constant ASYMET_LOW : natural := {{asymet_low}};
 constant ASYMET_HIGH : natural := {{asymet_bits-1}};
-constant ASYMHT_LOW : natural := 0;
+constant ASYMHT_LOW : natural := {{asymht_low}};
 constant ASYMHT_HIGH : natural := {{asymht_bits-1}};
-constant ASYMETHF_LOW : natural := 0;
+constant ASYMETHF_LOW : natural := {{asymethf_low}};
 constant ASYMETHF_HIGH : natural := {{asymethf_bits-1}};
-constant ASYMHTHF_LOW : natural := 0;
+constant ASYMHTHF_LOW : natural := {{asymhthf_low}};
 constant ASYMHTHF_HIGH : natural := {{asymhthf_bits-1}};
 
 -- TOWERCOUNT
 constant TOWERCOUNT_IN_HTT_LOW : natural := {{towercount_in_low}};
 constant TOWERCOUNT_IN_HTT_HIGH : natural := {{towercount_in_low+towercount_bits-1}};
-constant TOWERCOUNT_COUNT_LOW : natural := 0;
+constant TOWERCOUNT_COUNT_LOW : natural := {{towercount_low}};
 constant TOWERCOUNT_COUNT_HIGH : natural := {{towercount_bits-1}};
 
 -- Hadronic shower trigger bits (muon shower [mus]) - preliminary definition
--- MUS0 => muon obj 0, bit 61
--- MUS1 => muon obj 2, bit 61
--- MUSOOT0 => muon obj 4, bit 61
--- MUSOOT1 => muon obj 6, bit 61
-constant MUS_BIT : natural := 61;
-constant NR_MUS_BITS: natural := 4;
-constant MUON_OBJ_MUS0 : natural := 0;
-constant MUON_OBJ_MUS1 : natural := 2;
-constant MUON_OBJ_MUSOOT0 : natural := 4;
-constant MUON_OBJ_MUSOOT1 : natural := 6;
+constant MUS_BIT : natural := {{mus_bits}};
+constant NR_MUS_BITS: natural := {{nr_mus_bits}};
+constant MUON_OBJ_MUS0 : natural := {{muon_obj_mus0}};
+constant MUON_OBJ_MUS1 : natural := {{muon_obj_mus1}};
+constant MUON_OBJ_MUSOOT0 : natural := {{muon_obj_musoot0}};
+constant MUON_OBJ_MUSOOT1 : natural := {{muon_obj_musoot1}};
 
 -- MINIMUM BIAS TRIGGER objects
 constant MBT0HFP_IN_ETT_LOW : natural := {{mb_in_low}};
@@ -97,25 +94,25 @@ constant MBT1HFP_IN_ETM_HIGH : natural := {{mb_in_low+mbt1hfp_bits-1}};
 constant MBT1HFM_IN_HTM_LOW : natural := {{mb_in_low}};
 constant MBT1HFM_IN_HTM_HIGH : natural := {{mb_in_low+mbt1hfm_bits-1}};
 
-constant MBT0HFP_COUNT_LOW : natural := 0;
+constant MBT0HFP_COUNT_LOW : natural := {{mbt0hfp_low}};
 constant MBT0HFP_COUNT_HIGH : natural := {{mbt0hfp_bits-1}};
-constant MBT0HFM_COUNT_LOW : natural := 0;
+constant MBT0HFM_COUNT_LOW : natural := {{mbt0hfm_low}};
 constant MBT0HFM_COUNT_HIGH : natural := {{mbt0hfm_bits-1}};
-constant MBT1HFP_COUNT_LOW : natural := 0;
+constant MBT1HFP_COUNT_LOW : natural := {{mbt1hfp_low}};
 constant MBT1HFP_COUNT_HIGH : natural := {{mbt1hfp_bits-1}};
-constant MBT1HFM_COUNT_LOW : natural := 0;
+constant MBT1HFM_COUNT_LOW : natural := {{mbt1hfm_low}};
 constant MBT1HFM_COUNT_HIGH : natural := {{mbt1hfm_bits-1}};
 
 -- CENTRALITY
-constant CENT_IN_ETMHF_LOW : natural := 28;
-constant CENT_IN_ETMHF_HIGH : natural := 31;
-constant CENT_IN_HTMHF_LOW : natural := 28;
-constant CENT_IN_HTMHF_HIGH : natural := 31;
+constant CENT_IN_ETMHF_LOW : natural := {{cent_in_etmhf_low}};
+constant CENT_IN_ETMHF_HIGH : natural := {{cent_in_etmhf_high}};
+constant CENT_IN_HTMHF_LOW : natural := {{cent_in_htmhf_low}};
+constant CENT_IN_HTMHF_HIGH : natural := {{cent_in_htmhf_high}};
 
-constant CENT_LBITS_LOW : natural := 0;
-constant CENT_LBITS_HIGH: natural := 3;
-constant CENT_UBITS_LOW : natural := 4;
-constant CENT_UBITS_HIGH: natural := 7;
+constant CENT_LBITS_LOW : natural := {{cent_lbits_low}};
+constant CENT_LBITS_HIGH: natural := {{cent_lbits_high}};
+constant CENT_UBITS_LOW : natural := {{cent_ubits_low}};
+constant CENT_UBITS_HIGH: natural := {{cent_ubits_high}};
 
 -- PRECISION
 constant DETA_DPHI_PRECISION_ALL: positive := {{delta_prec}};
