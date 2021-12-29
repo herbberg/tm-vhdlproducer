@@ -1,8 +1,8 @@
-"""Constants for resources of Virtex chip.
+"""Constants for resources of Virtex chip, number of objects and gtl.
 
 """
 
-# resources of Virtex chip (algo_dist.py)
+# resources of Virtex chip (algo_dist.py, handles.py)
 virtex_resources = {
     'BRAMS_TOTAL': 1470,
     'SLICELUTS_TOTAL': 433200,
