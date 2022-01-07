@@ -271,6 +271,15 @@ def gtlLutsGenerator(self, scales, directory):
             lut_val = phiLutsCalc(lut_type, lut_size, phi_bins, phi_step, tbpt_prec)
             sin_cos_phi_param[obj_type][lut_type]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
 
+    # calculate LUT values for calo eta and phi converted to muon scale
+    """
+    VHDL constant names of deta and dphi LUTs:
+        CALO_ETA_CONV_2_MUON_ETA_LUT
+        CALO_PHI_CONV_2_MUON_PHI_LUT
+    """
+
+    # TBD
+
 # render template
     os.path.join(directory, gtl_const['lut_dir'])
     lut_path = os.path.join(directory, gtl_const['lut_dir'])
