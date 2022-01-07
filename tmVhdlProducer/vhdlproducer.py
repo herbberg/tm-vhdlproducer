@@ -289,7 +289,7 @@ def gtlLutsGenerator(self, scales, directory):
         fp.write(content_luts)
 
 def gtlPkgGenerator(self, scales, directory):
-    # calculate constant values for gtl_pkg.vhd (definition of "pt_scales" in constants.py)
+    # calculate constant values for gtl_pkg.vhd
     gtl_pkg_param = {}
 
     calo_eta_max_value = scales['EG-ETA'].getMaximum()

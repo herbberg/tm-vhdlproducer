@@ -31,7 +31,6 @@ from collections import namedtuple
 import tmEventSetup
 import tmGrammar
 
-#from .constants import BRAMS_TOTAL, SLICELUTS_TOTAL, PROCESSORS_TOTAL, NR_CALOS, NR_MUONS
 from .constants import virtex_resources, nr_obj
 
 from .handles import Payload
