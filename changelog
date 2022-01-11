@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.13.0] - 2022-01-07
 ### Added
 - support for generation of VHDL packages files
+- templates/vhdl/gtl_luts_pkg.vhd
+- templates/vhdl/gtl_pkg.vhd
 ### Changed
 - algodist.py
 - constant.py

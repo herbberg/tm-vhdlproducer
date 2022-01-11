@@ -25,6 +25,7 @@ gtl_const = {
     'templ_gtl_pkg': 'gtl_pkg.vhd',
     'phi_scales': ['EG-PHI', 'MU-PHI'],
     'sin_cos_phi_luts': ['sin_phi', 'cos_phi'],
+    'conv_luts': ['eta', 'phi'],
     'CALO_PHI_BINS': 144,
     'MUON_PHI_BINS': 576,
     'ETTEM_IN_ETT_LOW': 12,

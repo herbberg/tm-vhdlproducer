@@ -154,6 +154,25 @@ def phiLutsCalc(lut_type, lut_len, bins, step, prec):
     # eta and phi conv luts
     #if lut_type == "conv":
     # ...
+def convLutsCalc(lut_type, lut_len, bins):
+    lut = [0 for x in range(lut_len)]
+    lut_val = [0 for x in range(lut_len)]
+
+    if lut_type in gtl_const['conv_luts']:
+        for i in range(0,lut_len):
+            if lut_type == "eta":
+                if i < lut_len/2:
+                    lut[i] = i*4+2
+                else:
+                    lut[i] = -1*(lut_len-i)*4+2
+                lut_val[i] = lut[i]
+            elif lut_type == "phi":
+                lut[i] = i*4+2
+                if i < bins:
+                    lut_val[i] = lut[i]
+                else:
+                    lut_val[i] = 0
+
     return lut_val
 
 def gtlLutsGenerator(self, scales, directory):
@@ -278,7 +297,20 @@ def gtlLutsGenerator(self, scales, directory):
         CALO_PHI_CONV_2_MUON_PHI_LUT
     """
 
-    # TBD
+    calo_conv_2_muon_param = {}
+
+    for lut_type in gtl_const['conv_luts']:
+        if lut_type == "eta":
+            lut_size = 2**scales['EG-ETA'].getNbits()
+            eta_max_value = scales['EG-ETA'].getMaximum()
+            eta_min_value = scales['EG-ETA'].getMinimum()
+            eta_step = scales['EG-ETA'].getStep()
+            bins = int(round_halfway((abs(eta_min_value)+eta_max_value)/eta_step))
+        elif lut_type == "phi":
+            lut_size = 2**scales['EG-PHI'].getNbits()
+            bins = int(scales['EG-PHI'].getMaximum()/scales['EG-PHI'].getStep())
+        lut_val = convLutsCalc(lut_type, lut_size, bins)
+        calo_conv_2_muon_param[lut_type]={'lut_size': lut_size, 'min': min(lut_val), 'max': max(lut_val), 'lut': lut_val}
 
 # render template
     os.path.join(directory, gtl_const['lut_dir'])
@@ -290,6 +322,7 @@ def gtlLutsGenerator(self, scales, directory):
         'pt_param': pt_param,
         'corr_param': corr_param,
         'sin_cos_phi_param': sin_cos_phi_param,
+        'calo_conv_2_muon_param': calo_conv_2_muon_param,
     }
 
     content_luts = self.engine.render(gtl_const['templ_luts'], gtl_luts_params)
