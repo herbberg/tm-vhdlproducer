@@ -854,7 +854,8 @@ class Module(object):
         ]
         esums_type = [
             tmEventSetup.ETM,
-            tmEventSetup.HTM
+            tmEventSetup.HTM,
+            tmEventSetup.ETMHF
         ]
 
         def calc_factor(combination) -> float:
