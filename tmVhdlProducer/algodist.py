@@ -961,11 +961,7 @@ class Module(object):
             for combination in calc_diff_combinations():
                 factor = calc_factor(combination)
                 sliceLUTs += self.differences.sliceLUTs * factor
-<<<<<<< HEAD
-
-                print("DIFF:", combination, "=> SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
-
-=======
+                #print("DIFF:", combination, "=> SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
                 sliceLUTs_loc = self.differences.sliceLUTs * factor
                 #print("===> calc_diff_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc))
             return Payload(brams, sliceLUTs, processors)
@@ -1048,7 +1044,6 @@ class Module(object):
                 sliceLUTs_loc = self.dr_calc.sliceLUTs * factor
                 processors_loc = self.dr_calc.processors * factor
                 #print("===> calc_dr_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc), "DSPs:", int(processors_loc))
->>>>>>> test_list_resources
             return Payload(brams, sliceLUTs, processors)
 
             f_resources.close()
@@ -1066,13 +1061,9 @@ class Module(object):
             return combinations
 
         def calc_cosh_cos_mass_payload() -> Payload:
-<<<<<<< HEAD
             """Payload for instances of "cosh_deta_cos_dphi" calculations."""
             f_resources = open("resources.txt", 'a')
-
-=======
             """Payload for instances of "mass" calculations."""
->>>>>>> test_list_resources
             brams = 0
             sliceLUTs = 0
             processors = 0
@@ -1111,19 +1102,11 @@ class Module(object):
                 print("COSH_COS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
                 sliceLUTs += self.mass_calc.sliceLUTs * factor
                 processors += self.mass_calc.processors * factor
-<<<<<<< HEAD
                 print("MASS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
                 sliceLUTs += self.massdr_calc.sliceLUTs * factor
                 processors += self.massdr_calc.processors * factor
                 brams += self.massdr_calc.brams * factor
                 print("MASS/DR =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
-
-=======
-                sliceLUTs_loc = self.cosh_deta_cos_dphi.sliceLUTs * factor
-                sliceLUTs_loc += self.mass_calc.sliceLUTs * factor
-                processors_loc = self.mass_calc.processors * factor
-                #print("===> calc_cosh_cos_mass_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc), "DSPs:", int(processors_loc))
->>>>>>> test_list_resources
             return Payload(brams, sliceLUTs, processors)
 
             f_resources.close()
