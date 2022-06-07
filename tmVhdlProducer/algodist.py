@@ -541,6 +541,30 @@ class ResourceTray(object):
         differences = self.resources.differences
         return Payload(brams=differences.brams, sliceLUTs=differences.sliceLUTs, processors=differences.processors)
 
+    def deta_calc(self):
+        """Returns resource consumption payload for one unit of deta_calc calculation.
+        >>> tray.deta_calc()
+        Payload(sliceLUTs=301, processors=0, brams=0)
+        """
+        deta_calc = self.resources.deta_calc
+        return Payload(brams=deta_calc.brams, sliceLUTs=deta_calc.sliceLUTs, processors=deta_calc.processors)
+
+    def dphi_calc(self):
+        """Returns resource consumption payload for one unit of dphi_calc calculation.
+        >>> tray.dphi_calc()
+        Payload(sliceLUTs=301, processors=0, brams=0)
+        """
+        dphi_calc = self.resources.dphi_calc
+        return Payload(brams=dphi_calc.brams, sliceLUTs=dphi_calc.sliceLUTs, processors=dphi_calc.processors)
+
+    def dr_calc(self):
+        """Returns resource consumption payload for one unit of dr_calc calculation.
+        >>> tray.dr_calc()
+        Payload(sliceLUTs=301, processors=0, brams=0)
+        """
+        dr_calc = self.resources.dr_calc
+        return Payload(brams=dr_calc.brams, sliceLUTs=dr_calc.sliceLUTs, processors=dr_calc.processors)
+
     def cosh_deta_cos_dphi(self):
         """Returns resource consumption payload for one unit of cosh_deta_cos_dphi calculation for mass.
         >>> tray.cosh_deta_cos_dphi()
@@ -775,6 +799,9 @@ class Module(object):
 
 # =================================================================================
         self.differences = tray.differences()
+        self.deta_calc = tray.deta_calc()
+        self.dphi_calc = tray.dphi_calc()
+        self.dr_calc = tray.dr_calc()
         self.cosh_deta_cos_dphi = tray.cosh_deta_cos_dphi()
         self.mass_calc = tray.mass_calc()
         self.massdr_calc = tray.massdr_calc()
@@ -934,15 +961,100 @@ class Module(object):
             for combination in calc_diff_combinations():
                 factor = calc_factor(combination)
                 sliceLUTs += self.differences.sliceLUTs * factor
+<<<<<<< HEAD
 
                 print("DIFF:", combination, "=> SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
 
+=======
+                sliceLUTs_loc = self.differences.sliceLUTs * factor
+                #print("===> calc_diff_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc))
+            return Payload(brams, sliceLUTs, processors)
+
+        def calc_deta_combinations() -> dict:
+            """Object combinations for instances of "deltaR" calculations."""
+            combinations = {}
+            for algorithm in self.algorithms:
+                for condition in algorithm.conditions:
+                    if condition.type in corr_cond_2_obj:
+                        for cut in condition.cuts:
+                            if cut.cut_type == tmEventSetup.DeltaEta:
+                                a = condition.objects[0]
+                                b = condition.objects[1]
+                                key = (a.type, b.type, a.bx_offset, b.bx_offset) # create custom hash
+                                combinations[key] = (a, b)
+            return combinations
+
+        def calc_deta_payload() -> Payload:
+            """Payload for instances of "cosh_deta_cos_dphi" calculations."""
+            brams = 0
+            sliceLUTs = 0
+            processors = 0
+            for combination in calc_deta_combinations():
+                factor = calc_factor(combination)
+                sliceLUTs += self.deta_calc.sliceLUTs * factor
+                sliceLUTs_loc = self.deta_calc.sliceLUTs * factor
+                #print("===> calc_deta_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc))
+            return Payload(brams, sliceLUTs, processors)
+
+        def calc_dphi_combinations() -> dict:
+            """Object combinations for instances of "deltaR" calculations."""
+            combinations = {}
+            for algorithm in self.algorithms:
+                for condition in algorithm.conditions:
+                    if condition.type in corr_cond_2_obj:
+                        for cut in condition.cuts:
+                            if cut.cut_type == tmEventSetup.DeltaPhi:
+                                a = condition.objects[0]
+                                b = condition.objects[1]
+                                key = (a.type, b.type, a.bx_offset, b.bx_offset) # create custom hash
+                                combinations[key] = (a, b)
+            return combinations
+
+        def calc_dphi_payload() -> Payload:
+            """Payload for instances of "cosh_dphi_cos_dphi" calculations."""
+            brams = 0
+            sliceLUTs = 0
+            processors = 0
+            for combination in calc_dphi_combinations():
+                factor = calc_factor(combination)
+                sliceLUTs += self.dphi_calc.sliceLUTs * factor
+                sliceLUTs_loc = self.dphi_calc.sliceLUTs * factor
+                #print("===> calc_dphi_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc))
+            return Payload(brams, sliceLUTs, processors)
+
+        def calc_dr_combinations() -> dict:
+            """Object combinations for instances of "deltaR" calculations."""
+            combinations = {}
+            for algorithm in self.algorithms:
+                for condition in algorithm.conditions:
+                    if condition.type in corr_cond_2_obj:
+                        for cut in condition.cuts:
+                            if cut.cut_type == tmEventSetup.DeltaR:
+                                a = condition.objects[0]
+                                b = condition.objects[1]
+                                key = (a.type, b.type, a.bx_offset, b.bx_offset) # create custom hash
+                                combinations[key] = (a, b)
+            return combinations
+
+        def calc_dr_payload() -> Payload:
+            """Payload for instances of "cosh_deta_cos_dphi" calculations."""
+            brams = 0
+            sliceLUTs = 0
+            processors = 0
+            for combination in calc_dr_combinations():
+                factor = calc_factor(combination)
+                sliceLUTs += self.dr_calc.sliceLUTs * factor
+                processors += self.dr_calc.processors * factor
+                sliceLUTs_loc = self.dr_calc.sliceLUTs * factor
+                processors_loc = self.dr_calc.processors * factor
+                #print("===> calc_dr_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc), "DSPs:", int(processors_loc))
+>>>>>>> test_list_resources
             return Payload(brams, sliceLUTs, processors)
 
             f_resources.close()
 
         def calc_cosh_cos_mass_combinations() -> dict:
-            """Object combinations for instances of "cosh_deta_cos_dphi" calculations."""
+            """Object combinations for instances of "mass" calculations."""
             combinations = {}
             for algorithm in self.algorithms:
                 for condition in algorithm.conditions:
@@ -954,9 +1066,13 @@ class Module(object):
             return combinations
 
         def calc_cosh_cos_mass_payload() -> Payload:
+<<<<<<< HEAD
             """Payload for instances of "cosh_deta_cos_dphi" calculations."""
             f_resources = open("resources.txt", 'a')
 
+=======
+            """Payload for instances of "mass" calculations."""
+>>>>>>> test_list_resources
             brams = 0
             sliceLUTs = 0
             processors = 0
@@ -995,12 +1111,19 @@ class Module(object):
                 print("COSH_COS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
                 sliceLUTs += self.mass_calc.sliceLUTs * factor
                 processors += self.mass_calc.processors * factor
+<<<<<<< HEAD
                 print("MASS =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
                 sliceLUTs += self.massdr_calc.sliceLUTs * factor
                 processors += self.massdr_calc.processors * factor
                 brams += self.massdr_calc.brams * factor
                 print("MASS/DR =>", combination, "SL:", sliceLUTs, "PR:", processors, "BR:", brams, file=f_resources)
 
+=======
+                sliceLUTs_loc = self.cosh_deta_cos_dphi.sliceLUTs * factor
+                sliceLUTs_loc += self.mass_calc.sliceLUTs * factor
+                processors_loc = self.mass_calc.processors * factor
+                #print("===> calc_cosh_cos_mass_payload - objects/bx:", combination, "sliceLUTs:", int(sliceLUTs_loc), "DSPs:", int(processors_loc))
+>>>>>>> test_list_resources
             return Payload(brams, sliceLUTs, processors)
 
             f_resources.close()
@@ -1011,7 +1134,16 @@ class Module(object):
         # payload for instances of "differences" calculations
         payload += calc_diff_payload()
 
-        # payload for instances of "cosh_deta_cos_dphi" calculations
+        # payload for instances of "deltaEta" calculations
+        payload += calc_deta_payload()
+
+        # payload for instances of "deltaPhi" calculations
+        payload += calc_dphi_payload()
+
+        # payload for instances of "deltaR" calculations
+        payload += calc_dr_payload()
+
+        # payload for instances of "mass" calculations
         payload += calc_cosh_cos_mass_payload()
 
         # payload for instances of "mass over dr" calculations
@@ -1373,8 +1505,9 @@ def list_distribution(collection):
         logging.info("| Condition distribution, sorted by weight (ascending)                        |")
     logging.info("|                                                                             |")
     logging.info("|-----------------------------------------------------------------------------|")
-    logging.info("| Name                                             | Modules                  |")
-    logging.info("|--------------------------------------------------|--------------------------|")
+    logging.info("|-----------------------------------------------------------------------------------|")
+    logging.info("| Name                                             | Modules | sLUTs | DSPs | BRAMs |")
+    logging.info("|--------------------------------------------------|---------|-------|------|-------|")
     conditions = sorted(collection.conditions, key=lambda condition: condition.payload, reverse=collection.reverse_sorting)
     for condition in conditions:
         modules = []
@@ -1382,8 +1515,8 @@ def list_distribution(collection):
             if condition in module.conditions:
                 modules.append(module.id)
         modules_list = ','.join([str(module) for module in modules])
-        logging.info(f"| {condition.name:<48} | {modules_list:<24} |")
-    logging.info("|--------------------------------------------------|--------------------------|")
+        logging.info(f"| {condition.name:<48} | {modules_list:<7} | {condition.payload.sliceLUTs:<6}| {condition.payload.processors:<5}| {condition.payload.brams:<5} |")
+    logging.info("|--------------------------------------------------|---------|-------|------|-------|")
 
 #def list_summary(collection):
     #message = f"Summary for distribution on {len(collection)} modules, shadow ratio: {collection.ratio:.1f}"
