@@ -31,7 +31,7 @@ from collections import namedtuple
 import tmEventSetup
 import tmGrammar
 
-from .constants import BRAMS_TOTAL, SLICELUTS_TOTAL, PROCESSORS_TOTAL, NR_CALOS, NR_MUONS, NR_ADT, adt_obj_name
+from .constants import BRAMS_TOTAL, SLICELUTS_TOTAL, PROCESSORS_TOTAL, NR_CALOS, NR_MUONS
 
 from .handles import Payload
 from .handles import ObjectHandle
