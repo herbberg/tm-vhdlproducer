@@ -69,10 +69,10 @@
 {%- for condition in module.signalConditions %}
 {% include "instances/signal_condition.vhd" %}
 {% endfor %}
-{%- set adt_0_ext_cond_id = 250 %}
-{%- set adt_5_ext_cond_id = 255 %}
+{%- set mltt_low_ext_cond_bit = 250 %}
+{%- set mltt_high_ext_cond_bit = 255 %}
 {%- for condition in module.externalConditions %}
-    {%- if (condition.objects[0].externalChannelId >= adt_0_ext_cond_id) and (condition.objects[0].externalChannelId <= adt_5_ext_cond_id) %}
+    {%- if (condition.objects[0].externalChannelId >= mltt_low_ext_cond_bit) and (condition.objects[0].externalChannelId <= mltt_high_ext_cond_bit) %}
 {% include "instances/mltt_test/mltt.vhd" %}
     {%- else %}
 -- External condition assignment
