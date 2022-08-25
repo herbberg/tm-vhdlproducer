@@ -876,7 +876,7 @@
                         "types": ["esum"],
                         "processors": 0,
                         "brams": 0,
-                        "sliceLUTs": 2
+                        "sliceLUTs": 0
                     }
                 ]
             },
@@ -899,6 +899,12 @@
                         "processors": 0,
                         "brams": 0,
                         "sliceLUTs": 0
+                    },
+                    {
+                        "types": ["adt"],
+                        "processors": 0,
+                        "brams": 0,
+                        "sliceLUTs": 2000
                     },
                     {
                         "types": ["mltt"],

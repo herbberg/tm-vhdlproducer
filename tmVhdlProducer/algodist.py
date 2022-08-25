@@ -863,7 +863,9 @@ class ResourceTray(object):
         # adt_obj_name from constant.py
         if objects_types[0] == 'EXT':
             for object in condition.objects:
-                if object.name.split('_')[1] == 'MLTT':
+                if object.name.split('_')[1] == 'ADT':
+                    instance_objects = filter_first(lambda item: item.types == ['adt'], instance.objects)
+                elif object.name.split('_')[1] == 'MLTT':
                     instance_objects = filter_first(lambda item: item.types == ['mltt'], instance.objects)
                 else:
                     mapped_objects = self.map_objects(objects_types)
