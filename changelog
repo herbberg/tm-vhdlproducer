@@ -14,7 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support for "ML topological trigger (MLTT)" tests
 - templates for MLTT
 
-## [2.13.0] - 2022-08-18
+## [2.14.0] - 2022-08-22
+### Added
+- support for "anomaly detection trigger (ADT)" tests
+### Changed
+- templates for ADT
+
+## [2.13.0] - 2022-08-25
 ### Added
 - improved resource calculation
 ### Changed
