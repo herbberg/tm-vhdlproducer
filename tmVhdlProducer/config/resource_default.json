@@ -938,7 +938,7 @@
                         "types": ["adt"],
                         "processors": 0,
                         "brams": 0,
-                        "sliceLUTs": 2000
+                        "sliceLUTs": 38988
                     },
                     {
                         "types": ["mltt"],
