@@ -527,6 +527,7 @@ class VhdlProducer(object):
                     'module': module,
                 }
                 content = self.engine.render(template, params)
+                #print("content", content)
                 module_id = f"module_{module.id:d}"
                 filename = os.path.join(directories[module_id], template)
                 with open(filename, 'w') as fp:
