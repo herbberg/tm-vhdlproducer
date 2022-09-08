@@ -1,6 +1,4 @@
-"""Constants for resources of Virtex chip.
-
-"""
+"""Constants for resources of Virtex chip."""
 
 BRAMS_TOTAL = 1470
 SLICELUTS_TOTAL = 433200
