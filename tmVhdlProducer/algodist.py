@@ -920,9 +920,9 @@ class Module(object):
             left, right = combination[0], combination[1]
             if combination[2] != combination[3]:
                 if left in muon_type:
-                    return NR_MUONS * NR_MUONS
+                    return nr_obj['NR_MUONS'] * nr_obj['NR_MUONS']
                 else:
-                    return NR_CALOS * NR_CALOS
+                    return nr_obj['NR_CALOS'] * nr_obj['NR_CALOS']
             elif left == right:
                 if left in muon_type:
                     return nr_obj['NR_MUONS'] * (nr_obj['NR_MUONS'] - 1) / 2
@@ -1231,9 +1231,6 @@ class Module(object):
 
         # payload for instances of "deta dphi integer" calculations
         payload += calc_deta_dphi_payload()
-
-        # payload for instances of "mass over dr" calculations
-        payload += calc_massdr_payload()
 
 # =================================================================================
 
