@@ -378,7 +378,7 @@ def gtlPkgGenerator(self, scales, directory):
         'mu_charge_bits': gtl_const['MUON_CHARGE_BITS'],
         'mu_idx_bits': gtl_const['MUON_IDX_BITS'],
         'mu_ip_bits': gtl_const['MUON_IP_BITS'],
-        'mus_bits': gtl_const['MUS_BIT'],
+        'mus_bit': gtl_const['MUS_BIT'],
         'nr_mus_bits': gtl_const['NR_MUS_BITS'],
         'muon_obj_mus0': gtl_const['MUON_OBJ_MUS0'],
         'muon_obj_mus1': gtl_const['MUON_OBJ_MUS1'],
