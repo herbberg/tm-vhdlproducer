@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.14.0] - 2022-12-06
 ### Added
-- support for generation of VHDL packages files
+- support for generation of VHDL packages files (with parameters from UTM)
 - templates/vhdl/gtl_luts_pkg.vhd
 - templates/vhdl/gtl_pkg.vhd
 ### Changed
