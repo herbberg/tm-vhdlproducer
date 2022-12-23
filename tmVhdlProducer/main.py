@@ -17,6 +17,13 @@ from .algodist import MinModules, MaxModules
 from .algodist import kExternals
 from . import __version__
 
+import urllib.request
+import urllib.parse
+import urllib.error
+import stat
+#from .toolbox import remove as tb_remove
+#from .toolbox import make_executable as tb_make_executable
+
 EXIT_SUCCESS: int = 0
 EXIT_FAILURE: int = 1
 LOGFILE: str = 'tm-vhdlproducer.log'
@@ -61,6 +68,35 @@ def ratio_t(value: str) -> float:
         return ratio
     raise ValueError(ratio)
 
+def remove(filename):
+    """Savely remove a directory, file or a symbolic link."""
+    if os.path.isfile(filename):
+        os.remove(filename)
+    elif os.path.islink(filename):
+        os.remove(filename)
+    elif os.path.isdir(filename):
+        shutil.rmtree(filename)
+
+def make_executable(filename):
+    """Set executable flag for file."""
+    st = os.stat(filename)
+    os.chmod(filename, st.st_mode | stat.S_IEXEC)
+
+def download_file_from_url(url, filename):
+    """Download files from URL."""
+    # Remove existing file.
+    remove(filename)
+    # Download file
+    logging.info("retrieving %s", url)
+    urllib.request.urlretrieve(url, filename)
+    make_executable(filename)
+
+    with open(filename) as fp:
+        d = fp.read()
+    d = d.replace(', default=os.getlogin()', '')
+    with open(filename, 'w') as fp:
+        fp.write(d)
+
 # -----------------------------------------------------------------------------
 #  Command line parser
 # -----------------------------------------------------------------------------
@@ -74,7 +110,7 @@ def parse_args():
     )
     parser.add_argument('menu',
         type=os.path.abspath,
-        help="XML menu file to be loaded"
+        help="XML menu file to be loaded - from local or url"
     )
     parser.add_argument('--modules',
         metavar='<n>',
@@ -147,12 +183,24 @@ def main() -> int:
     logging.info("running VHDL producer...")
 
     logging.info("loading XML menu: %s", args.menu)
-    eventSetup = tmEventSetup.getTriggerMenu(args.menu)
+    if args.menu.find('https:/') == -1:
+        https = False
+        eventSetup = tmEventSetup.getTriggerMenu(args.menu)
+        orig = os.path.dirname(os.path.realpath(args.menu))
+        menu_filepath = args.menu
+    else:
+        https = True
+        url = os.path.join('https://', args.menu.split('https:/')[1])
+        xml_name = url.split('/')[-1]
+        menu_filepath = os.path.join(os.getcwd(), xml_name)
+        download_file_from_url(url, menu_filepath) # retrieve xml file from repo
+        eventSetup = tmEventSetup.getTriggerMenu(menu_filepath)
+        orig = os.path.dirname(menu_filepath)
+    
     output_dir = os.path.join(args.output, f"{eventSetup.getName()}-d{args.dist}")
 
     # Prevent overwirting source menu
     dest = os.path.realpath(os.path.join(output_dir, 'xml'))
-    orig = os.path.dirname(os.path.realpath(args.menu))
     if dest == orig:
         logging.error("%s is in %s directory which will be overwritten during the process", args.menu, dest)
         logging.error("     specified menu not in %s directory", dest)
@@ -199,7 +247,7 @@ def main() -> int:
         producer.write(collection, output_dir)
         logging.info("writing updated XML file %s", args.menu)
 
-        filename = producer.writeXmlMenu(args.menu, os.path.join(output_dir, 'xml'), args.dist) # TODO
+        filename = producer.writeXmlMenu(menu_filepath, os.path.join(output_dir, 'xml'), args.dist) # TODO
 
         # Write menu documentation.
         logging.info("generating menu documentation...")
@@ -217,6 +265,13 @@ def main() -> int:
             logging.info("%s --> %s", filename, newname)
             os.rename(filename, newname)
 
+    if https:
+        logging.info("removed %s", menu_filepath)
+        if os.path.exists(menu_filepath):
+            os.remove(menu_filepath)
+        else:
+            logging.info("can not delete file  %s as it doesn't exists", menu_filepath)
+            
     logging.info("done.")
 
     return EXIT_SUCCESS
