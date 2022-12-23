@@ -21,8 +21,6 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import stat
-#from .toolbox import remove as tb_remove
-#from .toolbox import make_executable as tb_make_executable
 
 EXIT_SUCCESS: int = 0
 EXIT_FAILURE: int = 1
