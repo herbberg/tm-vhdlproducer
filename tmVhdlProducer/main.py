@@ -107,8 +107,7 @@ def parse_args():
         epilog="Report bugs to <bernhard.arnold@cern.ch>"
     )
     parser.add_argument('menu',
-        type=os.path.abspath,
-        help="XML menu file to be loaded - from local or url"
+        help="XML menu file to be loaded - from local or URL"
     )
     parser.add_argument('--modules',
         metavar='<n>',
@@ -181,20 +180,20 @@ def main() -> int:
     logging.info("running VHDL producer...")
 
     logging.info("loading XML menu: %s", args.menu)
-    if args.menu.find('https:/') == -1:
-        https = False
+    
+    if args.menu.startswith("http"):
+        menu_filepath = os.path.join(os.getcwd(), args.menu.split('/')[-1])
+        logging.info("dowmload XML menu %s to %s", args.menu, menu_filepath)
+        download_file_from_url(args.menu, menu_filepath)
+        download_filepath = menu_filepath
+        eventSetup = tmEventSetup.getTriggerMenu(menu_filepath)
+        orig = os.path.dirname(menu_filepath)
+    else:
         eventSetup = tmEventSetup.getTriggerMenu(args.menu)
         orig = os.path.dirname(os.path.realpath(args.menu))
         menu_filepath = args.menu
-    else:
-        https = True
-        url = os.path.join('https://', args.menu.split('https:/')[1])
-        xml_name = url.split('/')[-1]
-        menu_filepath = os.path.join(os.getcwd(), xml_name)
-        download_file_from_url(url, menu_filepath) # retrieve xml file from repo
-        eventSetup = tmEventSetup.getTriggerMenu(menu_filepath)
-        orig = os.path.dirname(menu_filepath)
-    
+        download_filepath = ""
+       
     output_dir = os.path.join(args.output, f"{eventSetup.getName()}-d{args.dist}")
 
     # Prevent overwirting source menu
@@ -263,13 +262,10 @@ def main() -> int:
             logging.info("%s --> %s", filename, newname)
             os.rename(filename, newname)
 
-    if https:
-        logging.info("removed %s", menu_filepath)
-        if os.path.exists(menu_filepath):
-            os.remove(menu_filepath)
-        else:
-            logging.info("can not delete file  %s as it doesn't exists", menu_filepath)
-            
+    if os.path.exists(download_filepath):
+        os.remove(download_filepath)
+        logging.info("removed %s", download_filepath)
+               
     logging.info("done.")
 
     return EXIT_SUCCESS
