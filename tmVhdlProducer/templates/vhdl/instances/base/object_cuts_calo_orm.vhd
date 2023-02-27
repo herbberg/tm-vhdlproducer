@@ -19,6 +19,16 @@
         eta_w{{ i+1 }}_lower_limits_obj1 => ({% for o in base_objects %}{% if loop.index0 %}, {% endif %}X"{{ o.etaLowerLimit[i] | X04 }}"{% endfor %}),
     {%- endif %}
   {%- endfor %}
+  {%- if max_eta_cuts == 1 %}
+        eta_upper_limits_obj1 => (1 => X"{{ o1.etaUpperLimit[0] | X04 }}", others => X"0000"),
+        eta_lower_limits_obj1 => (1 => X"{{ o1.etaLowerLimit[0] | X04 }}", others => X"0000"),
+  {%- elif max_eta_cuts == 2 %}
+        eta_upper_limits_obj1 => (1 => X"{{ o1.etaUpperLimit[0] | X04 }}", 2 => X"{{ o2.etaUpperLimit[1] | X04 }}", others => X"0000"),
+        eta_lower_limits_obj1 => (1 => X"{{ o1.etaLowerLimit[0] | X04 }}", 2 => X"{{ o2.etaLowerLimit[1] | X04 }}", others => X"0000"),
+  {%- elif max_eta_cuts == 3 %}
+        eta_upper_limits_obj1 => (1 => X"{{ o1.etaUpperLimit[0] | X04 }}", 2 => X"{{ o2.etaUpperLimit[1] | X04 }}", 3 => X"{{ o3.etaUpperLimit[2] | X04 }}", others => X"0000"),
+        eta_lower_limits_obj1 => (1 => X"{{ o1.etaLowerLimit[0] | X04 }}", 2 => X"{{ o2.etaLowerLimit[1] | X04 }}", 3 => X"{{ o3.etaLowerLimit[2] | X04 }}", others => X"0000"),
+  {%- endif %}
   {%- set max_phi_cuts = [o1.phiNrCuts, o2.phiNrCuts, o3.phiNrCuts, o4.phiNrCuts] | max %}
   {%- if o1.phiNrCuts > 0 or o2.phiNrCuts > 0 or o3.phiNrCuts > 0 or o4.phiNrCuts > 0 %}
         nr_phi_windows_obj1 => ({% for o in base_objects %}{% if loop.index0 %}, {% endif %}{{ o.phiNrCuts }}{% endfor %}),

@@ -26,6 +26,16 @@
         eta_w{{j+1}}_lower_limit_obj{{i+1}} => X"{{ o.etaLowerLimit[j] | X04 }}",
     {%- endif %}
   {%- endfor %}
+  {%- if o.etaNrCuts == 1 %}
+        eta_upper_limit_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", others => X"0000"),
+        eta_lower_limit_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", others => X"0000"),
+  {%- elif o.etaNrCuts == 2 %}
+        eta_upper_limit_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", 2 => X"{{ o.etaUpperLimit[1] | X04 }}", others => X"0000"),
+        eta_lower_limit_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", 2 => X"{{ o.etaLowerLimit[1] | X04 }}", others => X"0000"),
+  {%- elif o.etaNrCuts == 3 %}
+        eta_upper_limit_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", 2 => X"{{ o.etaUpperLimit[1] | X04 }}", 3 => X"{{ o.etaUpperLimit[2] | X04 }}", others => X"0000"),
+        eta_lower_limit_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", 2 => X"{{ o.etaLowerLimit[1] | X04 }}", 3 => X"{{ o.etaLowerLimit[2] | X04 }}", others => X"0000"),
+  {%- endif %}
   {%- if o.phiNrCuts > 0 %}
         nr_phi_windows_obj{{i+1}} => {{ o.phiNrCuts }},
   {%- endif %}
