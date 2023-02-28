@@ -24,12 +24,6 @@
   {%- if o1.etaNrCuts > 0 or o2.etaNrCuts > 0 or o3.etaNrCuts > 0 or o4.etaNrCuts > 0 %}
         nr_eta_windows_obj1 => ({{ o1.etaNrCuts }}, {{ o2.etaNrCuts }}, {{ o3.etaNrCuts }}, {{ o4.etaNrCuts }}),
   {%- endif %}
-  {%- for i in range(0,max_eta_cuts) %}
-    {%- if o1.etaNrCuts > i or o2.etaNrCuts > i or o3.etaNrCuts > i or o4.etaNrCuts > i %}
-        eta_w{{i+1}}_upper_limits_obj1 => (X"{{ o1.etaUpperLimit[i] | X04 }}", X"{{ o2.etaUpperLimit[i] | X04 }}", X"{{ o3.etaUpperLimit[i] | X04}}", X"{{ o4.etaUpperLimit[i] | X04 }}"),
-        eta_w{{i+1}}_lower_limits_obj1 => (X"{{ o1.etaLowerLimit[i] | X04 }}", X"{{ o2.etaLowerLimit[i] | X04 }}", X"{{ o3.etaLowerLimit[i] | X04 }}", X"{{ o4.etaLowerLimit[i] | X04 }}"),
-    {%- endif %}
-  {%- endfor %}
   {%- if max_eta_cuts == 1 %}
         eta_upper_limits_obj1 => ((1 => X"{{ o1.etaUpperLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o2.etaUpperLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o3.etaUpperLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o4.etaUpperLimit[0] | X04 }}", others => X"0000")),
         eta_lower_limits_obj1 => ((1 => X"{{ o1.etaLowerLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o2.etaLowerLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o3.etaLowerLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o4.etaLowerLimit[0] | X04 }}", others => X"0000")),
