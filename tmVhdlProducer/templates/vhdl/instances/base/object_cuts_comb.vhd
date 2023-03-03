@@ -38,12 +38,13 @@
   {%- if o1.phiNrCuts > 0 or o2.phiNrCuts > 0 or o3.phiNrCuts > 0 or o4.phiNrCuts > 0 %}
         nr_phi_windows_obj1 => ({{ o1.phiNrCuts }}, {{ o2.phiNrCuts }}, {{ o3.phiNrCuts }}, {{ o4.phiNrCuts }}),
   {%- endif %}
-  {%- for i in range(0,max_phi_cuts) %}
-    {%- if o1.phiNrCuts > i or o2.phiNrCuts > i or o3.phiNrCuts > i or o4.phiNrCuts > i %}
-        phi_w{{i+1}}_upper_limits_obj1 => (X"{{ o1.phiUpperLimit[i] | X04 }}", X"{{ o2.phiUpperLimit[i] | X04 }}", X"{{ o3.phiUpperLimit[i] | X04}}", X"{{ o4.phiUpperLimit[i] | X04 }}"),
-        phi_w{{i+1}}_lower_limits_obj1 => (X"{{ o1.phiLowerLimit[i] | X04 }}", X"{{ o2.phiLowerLimit[i] | X04 }}", X"{{ o3.phiLowerLimit[i] | X04 }}", X"{{ o4.phiLowerLimit[i] | X04 }}"),
-    {%- endif %}
-  {%- endfor %}
+  {%- if max_phi_cuts == 1 %}
+        phi_upper_limits_obj1 => ((1 => X"{{ o1.phiUpperLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o2.phiUpperLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o3.phiUpperLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o4.phiUpperLimit[0] | X04 }}", others => X"0000")),
+        phi_lower_limits_obj1 => ((1 => X"{{ o1.phiLowerLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o2.phiLowerLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o3.phiLowerLimit[0] | X04 }}", others => X"0000"), (1 => X"{{ o4.phiLowerLimit[0] | X04 }}", others => X"0000")),
+  {%- elif max_phi_cuts == 2 %}
+        phi_upper_limits_obj1 => ((1 => X"{{ o1.phiUpperLimit[0] | X04 }}", 2 => X"{{ o1.phiUpperLimit[1] | X04 }}", others => X"0000"), (1 => X"{{ o2.phiUpperLimit[0] | X04 }}", 2 => X"{{ o2.phiUpperLimit[1] | X04 }}", others => X"0000"), (1 => X"{{ o3.phiUpperLimit[0] | X04 }}", 2 => X"{{ o3.phiUpperLimit[1] | X04 }}", others => X"0000"), (1 => X"{{ o4.phiUpperLimit[0] | X04 }}", 2 => X"{{ o4.phiUpperLimit[1] | X04 }}", others => X"0000")),
+        phi_lower_limits_obj1 => ((1 => X"{{ o1.phiLowerLimit[0] | X04 }}", 2 => X"{{ o1.phiLowerLimit[1] | X04 }}", others => X"0000"), (1 => X"{{ o2.phiLowerLimit[0] | X04 }}", 2 => X"{{ o2.phiLowerLimit[1] | X04 }}", others => X"0000"), (1 => X"{{ o3.phiLowerLimit[0] | X04 }}", 2 => X"{{ o3.phiLowerLimit[1] | X04 }}", others => X"0000"), (1 => X"{{ o4.phiLowerLimit[0] | X04 }}", 2 => X"{{ o4.phiLowerLimit[1] | X04 }}", others => X"0000")),
+  {%- endif %}
   {%- if (o1.isolation) or (o2.isolation) or (o3.isolation) or (o4.isolation) %}
         iso_luts_obj1 => (X"{{ o1.isolation.value | X01 }}", X"{{ o2.isolation.value | X01 }}", X"{{ o3.isolation.value | X01 }}", X"{{ o4.isolation.value | X01 }}"),
   {%- endif %}

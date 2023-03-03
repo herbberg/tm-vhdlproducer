@@ -21,24 +21,25 @@
         nr_eta_windows_obj{{i+1}} => {{ o.etaNrCuts }},
   {%- endif %}
   {%- if o.etaNrCuts == 1 %}
-        eta_upper_limit_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", others => X"0000"),
-        eta_lower_limit_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", others => X"0000"),
+        eta_upper_limits_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", others => X"0000"),
+        eta_lower_limits_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", others => X"0000"),
   {%- elif o.etaNrCuts == 2 %}
-        eta_upper_limit_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", 2 => X"{{ o.etaUpperLimit[1] | X04 }}", others => X"0000"),
-        eta_lower_limit_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", 2 => X"{{ o.etaLowerLimit[1] | X04 }}", others => X"0000"),
+        eta_upper_limits_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", 2 => X"{{ o.etaUpperLimit[1] | X04 }}", others => X"0000"),
+        eta_lower_limits_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", 2 => X"{{ o.etaLowerLimit[1] | X04 }}", others => X"0000"),
   {%- elif o.etaNrCuts == 3 %}
-        eta_upper_limit_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", 2 => X"{{ o.etaUpperLimit[1] | X04 }}", 3 => X"{{ o.etaUpperLimit[2] | X04 }}", others => X"0000"),
-        eta_lower_limit_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", 2 => X"{{ o.etaLowerLimit[1] | X04 }}", 3 => X"{{ o.etaLowerLimit[2] | X04 }}", others => X"0000"),
+        eta_upper_limits_obj{{i+1}} => (1 => X"{{ o.etaUpperLimit[0] | X04 }}", 2 => X"{{ o.etaUpperLimit[1] | X04 }}", 3 => X"{{ o.etaUpperLimit[2] | X04 }}", others => X"0000"),
+        eta_lower_limits_obj{{i+1}} => (1 => X"{{ o.etaLowerLimit[0] | X04 }}", 2 => X"{{ o.etaLowerLimit[1] | X04 }}", 3 => X"{{ o.etaLowerLimit[2] | X04 }}", others => X"0000"),
   {%- endif %}
   {%- if o.phiNrCuts > 0 %}
         nr_phi_windows_obj{{i+1}} => {{ o.phiNrCuts }},
   {%- endif %}
-  {%- for j in range(0,(o.phiNrCuts)) %}
-    {%- if o.phiNrCuts > j %}
-        phi_w{{j+1}}_upper_limit_obj{{i+1}} => X"{{ o.phiUpperLimit[j] | X04 }}",
-        phi_w{{j+1}}_lower_limit_obj{{i+1}} => X"{{ o.phiLowerLimit[j] | X04 }}",
-    {%- endif %}
-  {%- endfor %}
+  {%- if o.phiNrCuts == 1 %}
+        phi_upper_limits_obj{{i+1}} => (1 => X"{{ o.phiUpperLimit[0] | X04 }}", others => X"0000"),
+        phi_lower_limits_obj{{i+1}} => (1 => X"{{ o.phiLowerLimit[0] | X04 }}", others => X"0000"),
+  {%- elif o.phiNrCuts == 2 %}
+        phi_upper_limits_obj{{i+1}} => (1 => X"{{ o.phiUpperLimit[0] | X04 }}", 2 => X"{{ o.phiUpperLimit[1] | X04 }}", others => X"0000"),
+        phi_lower_limits_obj{{i+1}} => (1 => X"{{ o.phiLowerLimit[0] | X04 }}", 2 => X"{{ o.phiLowerLimit[1] | X04 }}", others => X"0000"),
+  {%- endif %}
   {%- if o.charge %}
         requested_charge_obj{{i+1}} => "{{ o.charge.value }}",
   {%- endif %}
