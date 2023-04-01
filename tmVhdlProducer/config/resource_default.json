@@ -131,8 +131,8 @@
         },
         "floor": {
             "processors": 0,
-            "sliceLUTs": 55620,
-            "brams": 244
+            "sliceLUTs": 47360,
+            "brams": 216
         },
         "ceiling": {
             "processors": 3600,
