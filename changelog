@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.1] - 2023-04-28
+### Added
+- support for topological trigger (as EXT_CONDs)
+- tmVhdlProducer/templates/vhdl/instances/topological_trigger.vhd
+### Changed
+- tmVhdlProducer/config/resource_default.json
+- tmVhdlProducer/algodist.py
+- tmVhdlProducer/templates/vhdl/gtl_module_instances.vhd
+
 ## [2.14.0] - 2023-03-13
 ### Added
 - support for utm 0.11.0 (ADT object cut, muon index cut, implementation of "MUS2" and ZDC)
