@@ -7,7 +7,7 @@ Install using pip (>= 19.0)
 
 ```bash
 pip install --upgrade pip
-pip install git+https://github.com/cms-l1-globaltrigger/tm-vhdlproducer.git@2.14.0
+pip install git+https://github.com/cms-l1-globaltrigger/tm-vhdlproducer.git@2.14.1
 ```
 
 ## Build from source
@@ -115,6 +115,10 @@ or to a subset of modules
 ```bash
 tm-vhdlproducer L1Menu_sample.xml --modules 2 --dist 1 --constraint ext:2,4-6  # limit external conditions to modules 2, 4, 5 and 6
 ```
+
+List of supported condition constraints:
+ - `ext`: external conditions
+ - `zdc`: both ZDC+ and ZDC- conditions
 
 ### Dryrun
 
